@@ -1,8 +1,6 @@
 /********************************************************/
 /* The ArchC ARMv5e functional model.                   */
 /* Author: Danilo Marcolin Caravana                     */
-/*         Luis Felipe Strano Moraes                    */
-/*                                                      */
 /*                                                      */
 /* For more information on ArchC, please visit:         */
 /* http://www.archc.org                                 */
@@ -13,18 +11,16 @@
 /* http://www.lsc.ic.unicamp.br                         */
 /********************************************************/
 
-#include  "armv5e-isa.H"
-#include  "ac_isa_init.cpp"
+#include "armv5e_isa.H"
+#include "armv5e_isa_init.cpp"
+#include "armv5e_bhv_macros.H"
 
-// Show all Register values before each instruction
-//#define REGISTERS
+using namespace armv5e_parms;
 
-// DEBUG
+//DEBUG
 static const int DEBUG_INSTR = 1;
 
-#ifndef DEBUG
 //#define DEBUG
-#endif
 
 #ifdef DEBUG
 #include <stdarg.h>
@@ -42,25 +38,23 @@ inline int dprintf(const char *format, ...) {
 inline void dprintf(const char *format, ...) {}
 #endif
 
-
-// Macros para bits: position == 0 é o bit mais a direita
-#define isBitSet(variable,position) (((variable & (1 << position)) != 0) ? true : false) 
-#define getBit(variable,position) (((variable & (1 << position)) != 0) ? true : false)
-#define setBit(variable,position) variable = variable | (1 << position)
-#define clearBit(variable,position) variable = variable & (~(1 << position))
+// Macros: Position == 0 (Right most bit)
+#define isBitSet(variable, position) (((variable & (1 << position)) != 0) ? true : false) 
+#define getBit(variable, position) (((variable & (1 << position)) != 0) ? true : false)
+#define setBit(variable, position) variable = variable | (1 << position)
+#define clearBit(variable, position) variable = variable & (~(1 << position))
 
 // Declaracoes de tipos e variaveis
-
 #define LR 14 // link return
 #define PC 15 // program counter
 
 typedef struct flag_s {
-  bool N;
-  bool Z;
-  bool C;
-  bool V;
-  bool Q; // usado nas instrucoes DSP
-  bool T; // indica uso ou nao de Thumb
+  bool N; // Negative
+  bool Z; // Zero
+  bool C; // Carry
+  bool V; // Overflow
+  bool Q; // DSP
+  bool T; // Thumb
 } flag_t;
 
 typedef union {
@@ -87,28 +81,26 @@ static reg_t OP1;
 static reg_t OP2;
 
 // Funcoes auxiliares
-reg_t ArithmeticShiftRight(int shiftamount, reg_t reg) {
+inline reg_t ArithmeticShiftRight(int shiftamount, reg_t reg) {
 
-  reg_t tmp;
-
-  tmp = reg;
+  reg_t tmp = reg;
   tmp.entire = ((signed long)tmp.entire) >> shiftamount;
   return tmp;
 }
 
-reg_t RotateRight(int shiftamount, reg_t reg) {
-  
+inline reg_t RotateRight(int shiftamount, reg_t reg) {
+
   reg_t ret;
   ret.entire = (((unsigned long)reg.entire) >> shiftamount) | (((unsigned long)reg.entire) << (32 - shiftamount));
  
   return ret;
 }
 
-long SignExtend(signed long word, int word_length) {
+inline long SignExtend(signed long word, int word_length) {
   return (signed long)((signed long)(word << (32 - word_length))) >> (32 - word_length);
 }
 
-int LSM_CountSetBits(reg_t registerList) {
+inline int LSM_CountSetBits(reg_t registerList) {
   int i, count;
 
   count = 0;
@@ -144,80 +136,46 @@ reg_t CPSRBuild() {
 //!Generic instruction behavior method.
 void ac_behavior( instruction ) {
 
-  // Incremento do PC
-  dprintf("----- PC=%#x ----- %lld\n", (unsigned int) ac_pc, ac_instr_counter);
-  ac_pc += 4;
-  RB.write(PC, ac_pc);
-
-#ifdef REGISTERS
-  int count;
-  for(count=0;count<16;count++)
-    dprintf("R%d = %X\n", count, RB.read(count));
-#endif 
+  dprintf("----- PC=%#x ----- %lld\n", (unsigned int)ac_pc, ac_instr_counter);
 
   // Tratamento do campo COND
   execute = false;
-  dprintf("cond=%d\n",cond);
+  dprintf("cond=%d\n", cond);
 
-  switch(cond){
-  case 0:
-    if (flags.Z == true) execute = true;
-    break;
-  case 1:
-    if (flags.Z == false) execute = true;
-    break;
-  case 2:
-    if (flags.C == true) execute = true;
-    break;
-  case 3:
-    if (flags.C == false) execute = true;
-    break;
-  case 4:
-    if (flags.N == true) execute = true;
-    break;
-  case 5:
-    if (flags.N == false) execute = true;
-    break; 
-  case 6:
-    if (flags.V == true) execute = true;
-    break;
-  case 7:
-    if (flags.V == false) execute = true;
-    break; 
-  case 8:
-    if ((flags.C == true)&&(flags.Z == false)) execute = true;
-    break;
-  case 9:
-    if ((flags.C == false)||(flags.Z == true)) execute = true;
-    break;
-  case 10:
-    if (flags.N == flags.V) execute = true;
-    break;
-  case 11:
-    if (flags.N != flags.V) execute = true;
-    break; 
-  case 12:
-    if ((flags.Z == false)&&(flags.N == flags.V)) execute = true;
-    break;
-  case 13:
-    if ((flags.Z == true)||(flags.N != flags.V)) execute = true;
-    break;
-  case 14:
-    execute = true;
-    break;
-  default:
-    execute = false;
+  switch(cond) {
+    case  0: if (flags.Z == true) execute = true; break;
+    case  1: if (flags.Z == false) execute = true; break;
+    case  2: if (flags.C == true) execute = true; break;
+    case  3: if (flags.C == false) execute = true; break;
+    case  4: if (flags.N == true) execute = true; break;
+    case  5: if (flags.N == false) execute = true; break; 
+    case  6: if (flags.V == true) execute = true; break;
+    case  7: if (flags.V == false) execute = true; break; 
+    case  8: if ((flags.C == true)&&(flags.Z == false)) execute = true; break; 
+    case  9: if ((flags.C == false)||(flags.Z == true)) execute = true; break;
+    case 10: if (flags.N == flags.V) execute = true; break;
+    case 11: if (flags.N != flags.V) execute = true; break; 
+    case 12: if ((flags.Z == false)&&(flags.N == flags.V)) execute = true; break;
+    case 13: if ((flags.Z == true)||(flags.N != flags.V)) execute = true;  break;
+    case 14: execute = true; break;
+    default: execute = false;
   }
-  if (execute) dprintf("Instrucao sera executada\n");
+
+  // Incremento do PC
+  ac_pc += 4;
+  RB.write(PC, ac_pc);
+
+  if (execute) 
+    dprintf("Instrucao sera executada\n");
   else {
     dprintf("Instrucao NAO sera executada\n");
     ac_annul();
   }
-};
+}
  
 // Instruction Format behavior methods.
 
-// DPI1 - Segundo operador é registrador com shift por imediato
+// DPI1 - Segundo operador ï¿½registrador com shift por imediato
 void ac_behavior( Type_DPI1 ) {
 
   reg_t RM2;
@@ -227,7 +185,7 @@ void ac_behavior( Type_DPI1 ) {
   // Caso especial: rm = 15
   if (rm == 15) {
     dprintf("Rm=PC -> usa-se Rm=Rm+8\n");
-    // PC já esta somado de 4 do behavior geral de instrução
+    // PC jï¿½esta somado de 4 do behavior geral de instruï¿½o
     RM2.entire = RB.read(rm) + 4;
   }
   else RM2.entire = RB.read(rm);
@@ -259,7 +217,7 @@ void ac_behavior( Type_DPI1 ) {
     break;
   case 2: // Arithmetic shift right
     dprintf("shift=10 -> Arithmetic Shift Right\nshiftamount=%d\n", shiftamount);
-    if ((shiftamount >= 0) && (shiftamount <= 32)) {
+    if ((shiftamount >= 0) && (shiftamount <= 31)) {
       if (shiftamount == 0) {
 	if (!isBitSet(RM2.entire, 31)) {
 	  dpi_shiftop.entire = 0;
@@ -290,7 +248,7 @@ void ac_behavior( Type_DPI1 ) {
   dprintf("Valores finais do shifter operand:\ndpi_shiftop=%ld\ndpi_shiftopcarry=%d\n", dpi_shiftop.entire,dpi_shiftopcarry);
 }
 
-// DPI2 - Segundo operador é registrador com shift por registrador
+// DPI2 - Segundo operador ï¿½registrador com shift por registrador
 void ac_behavior( Type_DPI2 ) {
 
   int rs40;
@@ -385,7 +343,7 @@ void ac_behavior( Type_DPI2 ) {
   dprintf("Valores finais do shifter operand:\ndpi_shiftop=%ld\ndpi_shiftopcarry=%d\n", dpi_shiftop.entire,dpi_shiftopcarry);
 }
 
-// DPI3 - Segundo operador é imediato com shift por imediato
+// DPI3 - Segundo operador ï¿½imediato com shift por imediato
 void ac_behavior( Type_DPI3 ){
 
   long tmp;
@@ -1061,7 +1019,9 @@ void ac_behavior( Type_DSPSM ){
 //! Behavior Methods
 
 //------------------------------------------------------
-void ADC(int rd, int rn, bool s) {
+void ADC(int rd, int rn, bool s,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2, RN2;
   r64bit_t soma;
@@ -1086,12 +1046,14 @@ void ADC(int rd, int rn, bool s) {
 		  ((!getBit(RN2.entire,31)) && (!getBit(dpi_shiftop.entire,31)) && getBit(RD2.entire,31))) ? true : false);
     }
   }
-  dprintf("Resultado: %ld\nFlags: N=%d, Z=%d, C=%d, V=%d\n",RD2.entire,flags.N,flags.Z,flags.C,flags.V);
+  dprintf("Resultado: %ld\nFlags: N=%d, Z=%d, C=%d, V=%d\n", RD2.entire,flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB.read(PC);
 }
 
 //------------------------------------------------------
-void ADD(int rd, int rn, bool s) {
+void ADD(int rd, int rn, bool s,
+    ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+    ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2, RN2;
   r64bit_t soma;
@@ -1115,12 +1077,14 @@ void ADD(int rd, int rn, bool s) {
 		  ((!getBit(RN2.entire,31)) && (!getBit(dpi_shiftop.entire,31)) && getBit(RD2.entire,31))) ? true : false);
     }
   }
-  dprintf("Resultado: %ld\nFlags: N=%d, Z=%d, C=%d, V=%d\n",RD2.entire,flags.N,flags.Z,flags.C,flags.V);
+  dprintf("Resultado: %ld\nFlags: N=%d, Z=%d, C=%d, V=%d\n", RD2.entire,flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB.read(PC);
 }
 
 //------------------------------------------------------
-void AND(int rd, int rn, bool s){
+void AND(int rd, int rn, bool s,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2, RN2;
   
@@ -1141,12 +1105,14 @@ void AND(int rd, int rn, bool s){
       // nada acontece com flags.V 
     }
   }   
-  dprintf("Resultado: %ld\nFlags: N=%d, Z=%d, C=%d, V=%d\n",RD2.entire,flags.N,flags.Z,flags.C,flags.V);
+  dprintf("Resultado: %ld\nFlags: N=%d, Z=%d, C=%d, V=%d\n", RD2.entire,flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB.read(PC);
 }
 
 //------------------------------------------------------
-void B(int h, int offset){
+void B(int h, int offset,
+       ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+       ac_reg<unsigned>& ac_pc) {
 
   long long mem_pos;
   long s_extend;
@@ -1156,7 +1122,7 @@ void B(int h, int offset){
   if(h == 1) { // h?? leia-se "l"
     dprintf("Instrucao: BL\n");
     RB.write(LR, RB.read(PC));
-    dprintf("Endereco de retorno do BL: %ld\n",RB.read(LR));
+    dprintf("Endereco de retorno do BL: %ld\n", RB.read(LR));
   } else dprintf("Instrucao: B\n");
 
   dprintf("offset=%ld\n",offset);
@@ -1164,7 +1130,7 @@ void B(int h, int offset){
   dprintf("s_extend=%ld\n",s_extend);
 
   mem_pos = (long long) RB.read(PC) + 4 + s_extend;
-  dprintf("Destino do branch calculado: %lld\n",mem_pos);
+  dprintf("Destino do branch calculado: %lld\n", mem_pos);
   if((mem_pos < 0)) {
     printf("Destino do branch fora dos limites de memoria\n");
     return;
@@ -1174,7 +1140,9 @@ void B(int h, int offset){
 }
 
 //------------------------------------------------------
-void BX(int rm){
+void BX(int rm,
+        ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+        ac_reg<unsigned>& ac_pc) {
 
   dprintf("Instrucao: BX\n");
 
@@ -1192,7 +1160,9 @@ void BX(int rm){
 }
 
 //------------------------------------------------------
-void BIC(int rd, int rn, bool s){
+void BIC(int rd, int rn, bool s,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2, RN2;
   
@@ -1224,7 +1194,9 @@ void CDP(){
 }
 
 //------------------------------------------------------
-void CLZ(int rd, int rm){
+void CLZ(int rd, int rm,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2, RM2;
   int i;
@@ -1246,13 +1218,15 @@ void CLZ(int rd, int rm){
     RD2.entire = 31 - i;
   }
 
-  dprintf("Resultado: %ld\n",RD2.entire);
+  dprintf("Resultado: %ld\n", RD2.entire);
     
   ac_pc = RB.read(PC);
 }
 
 //------------------------------------------------------
-void CMN(int rn){
+void CMN(int rn,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RN2, alu_out;
   r64bit_t soma;
@@ -1269,12 +1243,14 @@ void CMN(int rn){
   flags.V = (((getBit(RN2.entire,31) && getBit(dpi_shiftop.entire,31) && (!getBit(alu_out.entire,31))) ||
 	      ((!getBit(RN2.entire,31)) && (!getBit(dpi_shiftop.entire,31)) && getBit(alu_out.entire,31))) ? true : false);
 
-  dprintf("Resultado: %ld\nFlags: N=%d, Z=%d, C=%d, V=%d\n",alu_out.entire,flags.N,flags.Z,flags.C,flags.V);    
+  dprintf("Resultado: %ld\nFlags: N=%d, Z=%d, C=%d, V=%d\n", alu_out.entire,flags.N,flags.Z,flags.C,flags.V);    
   ac_pc = RB.read(PC);
 }
 
 //------------------------------------------------------
-void CMP(int rn){
+void CMP(int rn,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RN2, alu_out, neg_shiftop;
   r64bit_t result;
@@ -1292,12 +1268,14 @@ void CMP(int rn){
   flags.V = (((getBit(RN2.entire,31) && getBit(neg_shiftop.entire,31) && (!getBit(alu_out.entire,31))) ||
 	      ((!getBit(RN2.entire,31)) && (!getBit(neg_shiftop.entire,31)) && getBit(alu_out.entire,31))) ? true : false);
   
-  dprintf("Resultado: %ld\nFlags: N=%d, Z=%d, C=%d, V=%d\n",alu_out.entire,flags.N,flags.Z,flags.C,flags.V);     
+  dprintf("Resultado: %ld\nFlags: N=%d, Z=%d, C=%d, V=%d\n", alu_out.entire,flags.N,flags.Z,flags.C,flags.V);     
   ac_pc = RB.read(PC);
 }
 
 //------------------------------------------------------
-void EOR(int rd, int rn, bool s) {
+void EOR(int rd, int rn, bool s,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2, RN2;
   
@@ -1318,7 +1296,7 @@ void EOR(int rd, int rn, bool s) {
       // nada acontece com flags.V 
     }
   }   
-  dprintf("Resultado: %ld\nFlags: N=%d, Z=%d, C=%d, V=%d\n",RD2.entire,flags.N,flags.Z,flags.C,flags.V); 
+  dprintf("Resultado: %ld\nFlags: N=%d, Z=%d, C=%d, V=%d\n", RD2.entire,flags.N,flags.Z,flags.C,flags.V); 
   ac_pc = RB.read(PC);
 }
 
@@ -1329,7 +1307,9 @@ void LDC(){
 }
 
 //------------------------------------------------------
-void LDM(int rlist, bool r){
+void LDM(int rlist, bool r,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   // fazer casos especiais
 
@@ -1343,7 +1323,7 @@ void LDM(int rlist, bool r){
     if(isBitSet(rlist,i)) {
       RB.write(i,MEM.read(ls_address.entire));
       ls_address.entire += 4;
-      dprintf("Registrador carregado: %d; Valor: %d; proximo endereco: %ld\n",i,RB.read(i),ls_address.entire);
+      dprintf("Registrador carregado: %d; Valor: %d; proximo endereco: %ld\n", i,RB.read(i),ls_address.entire);
     }
   }
     
@@ -1351,7 +1331,7 @@ void LDM(int rlist, bool r){
     value = MEM.read(ls_address.entire);
     RB.write(PC,value & 0xFFFFFFFE);
     ls_address.entire += 4;
-    dprintf("Registrador carregado: PC; proximo endereco: %ld\n",ls_address.entire);
+    dprintf("Registrador carregado: PC; proximo endereco: %ld\n", ls_address.entire);
   }
     
   // LDM(2) igual a LDM(1) exceto pelo "if" acima
@@ -1363,7 +1343,9 @@ void LDM(int rlist, bool r){
 }
 
 //------------------------------------------------------
-void LDR(int rd, int rn) {
+void LDR(int rd, int rn,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   long value;
   reg_t tmp;
@@ -1408,7 +1390,9 @@ void LDR(int rd, int rn) {
 }
 
 //------------------------------------------------------
-void LDRB(int rd, int rn) {
+void LDRB(int rd, int rn,
+          ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   dprintf("Instrucao: LDRB\n");
 
@@ -1421,7 +1405,9 @@ void LDRB(int rd, int rn) {
 }
 
 //------------------------------------------------------
-void LDRBT(int rd, int rn){
+void LDRBT(int rd, int rn,
+           ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   dprintf("Instrucao: LDRBT\n");
 
@@ -1434,7 +1420,9 @@ void LDRBT(int rd, int rn){
 }
 
 //------------------------------------------------------
-void LDRD(int rd, int rn) {
+void LDRD(int rd, int rn,
+          ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   dprintf("Instrucao: LDRD\n");
 
@@ -1457,7 +1445,9 @@ void LDRD(int rd, int rn) {
   ac_pc = RB.read(PC);
 }
 //------------------------------------------------------
-void LDRH(int rd, int rn) {
+void LDRH(int rd, int rn,
+          ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
  
   dprintf("Instrucao: LDRH\n");
 
@@ -1475,7 +1465,9 @@ void LDRH(int rd, int rn) {
 }
 
 //------------------------------------------------------
-void LDRSB(int rd, int rn) {
+void LDRSB(int rd, int rn,
+           ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   long data;
 
@@ -1490,7 +1482,9 @@ void LDRSB(int rd, int rn) {
 }
 
 //------------------------------------------------------
-void LDRSH(int rd, int rn){
+void LDRSH(int rd, int rn,
+           ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+           ac_reg<unsigned>& ac_pc, ac_memory& MEM){
 
   long data;
 
@@ -1511,7 +1505,9 @@ void LDRSH(int rd, int rn){
 }
 
 //------------------------------------------------------
-void LDRT(int rd, int rn){
+void LDRT(int rd, int rn,
+          ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   int addr10;
   reg_t tmp;
@@ -1550,7 +1546,9 @@ void MCR(){
 }
 
 //------------------------------------------------------
-void MLA(int rd, int rn, int rm, int rs, bool s){
+void MLA(int rd, int rn, int rm, int rs, bool s,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2, RN2, RM2, RS2;
   RN2.entire = RB.read(rn);
@@ -1578,7 +1576,9 @@ void MLA(int rd, int rn, int rm, int rs, bool s){
 }
 
 //------------------------------------------------------
-void MOV(int rd, bool s){
+void MOV(int rd, bool s,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
   
   dprintf("Instrucao: MOV\n");
   dprintf("Operadores:\nShiftOp contendo %ld\nDestino: Rd=%d\n",dpi_shiftop.entire,rd);
@@ -1606,7 +1606,9 @@ void MRC(){
 }
 
 //------------------------------------------------------
-void MRS(int rd, bool r, int zero3, int subop2, int func2, int subop1, int rm, int field){
+void MRS(int rd, bool r, int zero3, int subop2, int func2, int subop1, int rm, int field,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t CPSR;
 
@@ -1626,7 +1628,9 @@ void MRS(int rd, bool r, int zero3, int subop2, int func2, int subop1, int rm, i
 }
 
 //------------------------------------------------------
-void MUL(int rd, int rm, int rs, bool s){
+void MUL(int rd, int rm, int rs, bool s,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2, RM2, RS2;
   RM2.entire = RB.read(rm);
@@ -1653,7 +1657,9 @@ void MUL(int rd, int rm, int rs, bool s){
 }
 
 //------------------------------------------------------
-void MVN(int rd, bool s){
+void MVN(int rd, bool s,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   dprintf("Instrucao: MVN\n");
   dprintf("Operadores:\nShiftOp contendo %ld\nDestino: Rd=%d\n",dpi_shiftop.entire,rd);
@@ -1675,7 +1681,9 @@ void MVN(int rd, bool s){
 }
 
 //------------------------------------------------------
-void ORR(int rd, int rn, bool s) {
+void ORR(int rd, int rn, bool s,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2, RN2;
   
@@ -1701,7 +1709,9 @@ void ORR(int rd, int rn, bool s) {
 }
 
 //------------------------------------------------------
-void RSB(int rd, int rn, bool s) {
+void RSB(int rd, int rn, bool s,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2, RN2, neg_RN2;
   r64bit_t result;
@@ -1731,7 +1741,9 @@ void RSB(int rd, int rn, bool s) {
 }
 
 //------------------------------------------------------
-void RSC(int rd, int rn, bool s){
+void RSC(int rd, int rn, bool s,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2, RN2, neg_RN2;
   r64bit_t result;
@@ -1763,7 +1775,9 @@ void RSC(int rd, int rn, bool s){
 }
 
 //------------------------------------------------------
-void SBC(int rd, int rn, bool s) {
+void SBC(int rd, int rn, bool s,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2, RN2, neg_shiftop;
   r64bit_t result;
@@ -1794,7 +1808,9 @@ void SBC(int rd, int rn, bool s) {
 }
 
 //------------------------------------------------------
-void SMLAL(int rdhi, int rdlo, int rm, int rs, bool s){
+void SMLAL(int rdhi, int rdlo, int rm, int rs, bool s,
+           ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+           ac_reg<unsigned>& ac_pc) {
 
   r64bit_t result, acc;
   reg_t RM2, RS2;
@@ -1826,7 +1842,9 @@ void SMLAL(int rdhi, int rdlo, int rm, int rs, bool s){
 }
 
 //------------------------------------------------------
-void SMULL(int rdhi, int rdlo, int rm, int rs, bool s){
+void SMULL(int rdhi, int rdlo, int rm, int rs, bool s,
+           ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+           ac_reg<unsigned>& ac_pc) {
 
   r64bit_t result;
   reg_t RM2, RS2;
@@ -1862,7 +1880,9 @@ void STC(){
 }
 
 //------------------------------------------------------
-void STM(int rlist){
+void STM(int rlist,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   // fazer casos especiais
 
@@ -1886,7 +1906,9 @@ void STM(int rlist){
 }
 
 //------------------------------------------------------
-void STR(int rd, int rn){
+void STR(int rd, int rn,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   dprintf("Instrucao: STR\n");
 
@@ -1900,7 +1922,9 @@ void STR(int rd, int rn){
 }
 
 //------------------------------------------------------
-void STRB(int rd, int rn){
+void STRB(int rd, int rn,
+          ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   reg_t RD2;
 
@@ -1916,7 +1940,9 @@ void STRB(int rd, int rn){
 }
 
 //------------------------------------------------------
-void STRBT(int rd, int rn){
+void STRBT(int rd, int rn,
+           ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   reg_t RD2;
 
@@ -1932,7 +1958,9 @@ void STRBT(int rd, int rn){
 }
 
 //------------------------------------------------------
-void STRD(int rd, int rn){
+void STRD(int rd, int rn,
+          ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   dprintf("Instrucao: STRD\n");
 
@@ -1956,7 +1984,9 @@ void STRD(int rd, int rn){
 }
 
 //------------------------------------------------------
-void STRH(int rd, int rn){
+void STRH(int rd, int rn,
+          ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   short int data;
 
@@ -1977,7 +2007,9 @@ void STRH(int rd, int rn){
 }
 
 //------------------------------------------------------
-void STRT(int rd, int rn){
+void STRT(int rd, int rn,
+          ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   dprintf("Instrucao: STRT\n");
 
@@ -1990,7 +2022,9 @@ void STRT(int rd, int rn){
 }
 
 //------------------------------------------------------
-void SUB(int rd, int rn, bool s) {
+void SUB(int rd, int rn, bool s,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2, RN2, neg_shiftop;
   r64bit_t result;
@@ -2021,7 +2055,9 @@ void SUB(int rd, int rn, bool s) {
 }
 
 //------------------------------------------------------
-void SWP(int rd, int rn, int rm){
+void SWP(int rd, int rn, int rm,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   reg_t RN2, RM2, rtmp;
   long tmp;
@@ -2070,7 +2106,9 @@ void SWP(int rd, int rn, int rm){
 }
 
 //------------------------------------------------------
-void SWPB(int rd, int rn, int rm){
+void SWPB(int rd, int rn, int rm,
+          ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   long tmp;
   reg_t RM2, RN2;
@@ -2096,7 +2134,9 @@ void SWPB(int rd, int rn, int rm){
 }
 
 //------------------------------------------------------
-void TEQ(int rn){
+void TEQ(int rn,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RN2, alu_out;
 
@@ -2115,7 +2155,9 @@ void TEQ(int rn){
 }
 
 //------------------------------------------------------
-void TST(int rn){
+void TST(int rn,
+         ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+         ac_reg<unsigned>& ac_pc) {
 
   reg_t RN2, alu_out;
 
@@ -2134,7 +2176,9 @@ void TST(int rn){
 }
 
 //------------------------------------------------------
-void UMLAL(int rdhi, int rdlo, int rm, int rs, bool s){
+void UMLAL(int rdhi, int rdlo, int rm, int rs, bool s,
+           ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+           ac_reg<unsigned>& ac_pc) {
 
   r64bit_t result, acc;
   reg_t RM2, RS2;
@@ -2166,7 +2210,9 @@ void UMLAL(int rdhi, int rdlo, int rm, int rs, bool s){
 }
 
 //------------------------------------------------------
-void UMULL(int rdhi, int rdlo, int rm, int rs, bool s){
+void UMULL(int rdhi, int rdlo, int rm, int rs, bool s,
+           ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+           ac_reg<unsigned>& ac_pc) {
 
   
   r64bit_t result;
@@ -2197,7 +2243,9 @@ void UMULL(int rdhi, int rdlo, int rm, int rs, bool s){
 }
 
 //------------------------------------------------------
-void DSMLA(int rd, int rn) {
+void DSMLA(int rd, int rn,
+           ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+           ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2, RN2;
 
@@ -2214,7 +2262,9 @@ void DSMLA(int rd, int rn) {
 }
 
 //------------------------------------------------------
-void DSMUL(int rd) {
+void DSMUL(int rd,
+           ac_regbank<31, armv5e_parms::ac_word, armv5e_parms::ac_Dword>& RB,
+           ac_reg<unsigned>& ac_pc) {
 
   reg_t RD2;
 
@@ -2232,151 +2282,151 @@ void DSMUL(int rd) {
 
 
 //!Instruction and1 behavior method.
-void ac_behavior( and1 ){ AND(rd, rn, s);}
+void ac_behavior( and1 ){ AND(rd, rn, s, RB, ac_pc);}
 
 //!Instruction eor1 behavior method.
-void ac_behavior( eor1 ){ EOR(rd, rn, s);}
+void ac_behavior( eor1 ){ EOR(rd, rn, s, RB, ac_pc);}
 
 //!Instruction sub1 behavior method.
-void ac_behavior( sub1 ){ SUB(rd, rn, s);}
+void ac_behavior( sub1 ){ SUB(rd, rn, s, RB, ac_pc);}
 
 //!Instruction rsb1 behavior method.
-void ac_behavior( rsb1 ){ RSB(rd, rn, s);}
+void ac_behavior( rsb1 ){ RSB(rd, rn, s, RB, ac_pc);}
 
 //!Instruction add1 behavior method.
-void ac_behavior( add1 ){ ADD(rd, rn, s);}
+void ac_behavior( add1 ){ ADD(rd, rn, s, RB, ac_pc);}
 
 //!Instruction adc1 behavior method.
-void ac_behavior( adc1 ){ ADC(rd, rn, s);}
+void ac_behavior( adc1 ){ ADC(rd, rn, s, RB, ac_pc);}
 
 //!Instruction sbc1 behavior method.
-void ac_behavior( sbc1 ){ SBC(rd, rn, s);}
+void ac_behavior( sbc1 ){ SBC(rd, rn, s, RB, ac_pc);}
 
 //!Instruction rsc1 behavior method.
-void ac_behavior( rsc1 ){ RSC(rd, rn, s);}
+void ac_behavior( rsc1 ){ RSC(rd, rn, s, RB, ac_pc);}
 
 //!Instruction tst1 behavior method.
-void ac_behavior( tst1 ){ TST(rn);}
+void ac_behavior( tst1 ){ TST(rn, RB, ac_pc);}
 
 //!Instruction teq1 behavior method.
-void ac_behavior( teq1 ){ TEQ(rn);}
+void ac_behavior( teq1 ){ TEQ(rn, RB, ac_pc);}
 
 //!Instruction cmp1 behavior method.
-void ac_behavior( cmp1 ){ CMP(rn);}
+void ac_behavior( cmp1 ){ CMP(rn, RB, ac_pc);}
 
 //!Instruction cmn1 behavior method.
-void ac_behavior( cmn1 ){ CMN(rn);}
+void ac_behavior( cmn1 ){ CMN(rn, RB, ac_pc);}
 
 //!Instruction orr1 behavior method.
-void ac_behavior( orr1 ){ ORR(rd, rn, s);}
+void ac_behavior( orr1 ){ ORR(rd, rn, s, RB, ac_pc);}
 
 //!Instruction mov1 behavior method.
-void ac_behavior( mov1 ){ MOV(rd, s);}
+void ac_behavior( mov1 ){ MOV(rd, s, RB, ac_pc);}
 
 //!Instruction bic1 behavior method.
-void ac_behavior( bic1 ){ BIC(rd, rn, s);}
+void ac_behavior( bic1 ){ BIC(rd, rn, s, RB, ac_pc);}
 
 //!Instruction mvn1 behavior method.
-void ac_behavior( mvn1 ){ MVN(rd, s);}
+void ac_behavior( mvn1 ){ MVN(rd, s, RB, ac_pc);}
 
 //!Instruction and2 behavior method.
-void ac_behavior( and2 ){ AND(rd, rn, s);}
+void ac_behavior( and2 ){ AND(rd, rn, s, RB, ac_pc);}
 
 //!Instruction eor2 behavior method.
-void ac_behavior( eor2 ){ EOR(rd, rn, s);}
+void ac_behavior( eor2 ){ EOR(rd, rn, s, RB, ac_pc);}
 
 //!Instruction sub2 behavior method.
-void ac_behavior( sub2 ){ SUB(rd, rn, s);}
+void ac_behavior( sub2 ){ SUB(rd, rn, s, RB, ac_pc);}
 
 //!Instruction rsb2 behavior method.
-void ac_behavior( rsb2 ){ RSB(rd, rn, s);}
+void ac_behavior( rsb2 ){ RSB(rd, rn, s, RB, ac_pc);}
 
 //!Instruction add2 behavior method.
-void ac_behavior( add2 ){ ADD(rd, rn, s);}
+void ac_behavior( add2 ){ ADD(rd, rn, s, RB, ac_pc);}
 
 //!Instruction adc2 behavior method.
-void ac_behavior( adc2 ){ ADC(rd, rn, s);}
+void ac_behavior( adc2 ){ ADC(rd, rn, s, RB, ac_pc);}
 
 //!Instruction sbc2 behavior method.
-void ac_behavior( sbc2 ){ SBC(rd, rn, s);}
+void ac_behavior( sbc2 ){ SBC(rd, rn, s, RB, ac_pc);}
 
 //!Instruction rsc2 behavior method.
-void ac_behavior( rsc2 ){ RSC(rd, rn, s);}
+void ac_behavior( rsc2 ){ RSC(rd, rn, s, RB, ac_pc);}
 
 //!Instruction tst2 behavior method.
-void ac_behavior( tst2 ){ TST(rn);}
+void ac_behavior( tst2 ){ TST(rn, RB, ac_pc);}
 
 //!Instruction teq2 behavior method.
-void ac_behavior( teq2 ){ TEQ(rn);}
+void ac_behavior( teq2 ){ TEQ(rn, RB, ac_pc);}
 
 //!Instruction cmp2 behavior method.
-void ac_behavior( cmp2 ){ CMP(rn);}
+void ac_behavior( cmp2 ){ CMP(rn, RB, ac_pc);}
 
 //!Instruction cmn2 behavior method.
-void ac_behavior( cmn2 ){ CMN(rn);}
+void ac_behavior( cmn2 ){ CMN(rn, RB, ac_pc);}
 
 //!Instruction orr2 behavior method.
-void ac_behavior( orr2 ){ ORR(rd, rn, s);}
+void ac_behavior( orr2 ){ ORR(rd, rn, s, RB, ac_pc);}
 
 //!Instruction mov2 behavior method.
-void ac_behavior( mov2 ){ MOV(rd, s);}
+void ac_behavior( mov2 ){ MOV(rd, s, RB, ac_pc);}
 
 //!Instruction bic2 behavior method.
-void ac_behavior( bic2 ){ BIC(rd, rn, s);}
+void ac_behavior( bic2 ){ BIC(rd, rn, s, RB, ac_pc);}
 
 //!Instruction mvn2 behavior method.
-void ac_behavior( mvn2 ){ MVN(rd, s);}
+void ac_behavior( mvn2 ){ MVN(rd, s, RB, ac_pc);}
 
 //!Instruction and3 behavior method.
-void ac_behavior( and3 ){ AND(rd, rn, s);}
+void ac_behavior( and3 ){ AND(rd, rn, s, RB, ac_pc);}
 
 //!Instruction eor3 behavior method.
-void ac_behavior( eor3 ){ EOR(rd, rn, s);}
+void ac_behavior( eor3 ){ EOR(rd, rn, s, RB, ac_pc);}
 
 //!Instruction sub3 behavior method.
-void ac_behavior( sub3 ){ SUB(rd, rn, s);}
+void ac_behavior( sub3 ){ SUB(rd, rn, s, RB, ac_pc);}
 
 //!Instruction rsb3 behavior method.
-void ac_behavior( rsb3 ){ RSB(rd, rn, s);}
+void ac_behavior( rsb3 ){ RSB(rd, rn, s, RB, ac_pc);}
 
 //!Instruction add3 behavior method.
-void ac_behavior( add3 ){ ADD(rd, rn, s);}
+void ac_behavior( add3 ){ ADD(rd, rn, s, RB, ac_pc);}
 
 //!Instruction adc3 behavior method.
-void ac_behavior( adc3 ){ ADC(rd, rn, s);}
+void ac_behavior( adc3 ){ ADC(rd, rn, s, RB, ac_pc);}
 
 //!Instruction sbc3 behavior method.
-void ac_behavior( sbc3 ){ SBC(rd, rn, s);}
+void ac_behavior( sbc3 ){ SBC(rd, rn, s, RB, ac_pc);}
 
 //!Instruction rsc3 behavior method.
-void ac_behavior( rsc3 ){ RSC(rd, rn, s);}
+void ac_behavior( rsc3 ){ RSC(rd, rn, s, RB, ac_pc);}
 
 //!Instruction tst3 behavior method.
-void ac_behavior( tst3 ){ TST(rn);}
+void ac_behavior( tst3 ){ TST(rn, RB, ac_pc);}
 
 //!Instruction teq3 behavior method.
-void ac_behavior( teq3 ){ TEQ(rn);}
+void ac_behavior( teq3 ){ TEQ(rn, RB, ac_pc);}
 
 //!Instruction cmp3 behavior method.
-void ac_behavior( cmp3 ){ CMP(rn);}
+void ac_behavior( cmp3 ){ CMP(rn, RB, ac_pc);}
 
 //!Instruction cmn3 behavior method.
-void ac_behavior( cmn3 ){ CMN(rn);}
+void ac_behavior( cmn3 ){ CMN(rn, RB, ac_pc);}
 
 //!Instruction orr3 behavior method.
-void ac_behavior( orr3 ){ ORR(rd, rn, s);}
+void ac_behavior( orr3 ){ ORR(rd, rn, s, RB, ac_pc);}
 
 //!Instruction mov3 behavior method.
-void ac_behavior( mov3 ){ MOV(rd, s);}
+void ac_behavior( mov3 ){ MOV(rd, s, RB, ac_pc);}
 
 //!Instruction bic3 behavior method.
-void ac_behavior( bic3 ){ BIC(rd, rn, s);}
+void ac_behavior( bic3 ){ BIC(rd, rn, s, RB, ac_pc);}
 
 //!Instruction mvn3 behavior method.
-void ac_behavior( mvn3 ){ MVN(rd, s);}
+void ac_behavior( mvn3 ){ MVN(rd, s, RB, ac_pc);}
 
 //!Instruction b behavior method.
-void ac_behavior( b ){ B(h, offset);}
+void ac_behavior( b ){ B(h, offset, RB, ac_pc);}
 
 //!Instruction blx1 behavior method.
 void ac_behavior( blx1 ){
@@ -2384,7 +2434,7 @@ void ac_behavior( blx1 ){
 }
 
 //!Instruction bx behavior method.
-void ac_behavior( bx ){ BX(rm); }
+void ac_behavior( bx ){ BX(rm, RB, ac_pc); }
 
 //!Instruction blx2 behavior method.
 void ac_behavior( blx2 ){
@@ -2392,96 +2442,96 @@ void ac_behavior( blx2 ){
 }
 
 //!Instruction swp behavior method.
-void ac_behavior( swp ){ SWP(rd, rn, rm);}
+void ac_behavior( swp ){ SWP(rd, rn, rm, RB, ac_pc, MEM); }
 
 //!Instruction swpb behavior method.
-void ac_behavior( swpb ){ SWPB(rd, rn, rm);}
+void ac_behavior( swpb ){ SWPB(rd, rn, rm, RB, ac_pc, MEM); }
 
 //!Instruction mla behavior method.
-void ac_behavior( mla ){ MLA(rn, rd, rm, rs, s);}
+void ac_behavior( mla ){ MLA(rn, rd, rm, rs, s, RB, ac_pc);}
 // OBS: inversao dos parametros proposital ("fields with the same name...")
 
 //!Instruction mul behavior method.
-void ac_behavior( mul ){ MUL(rn, rm, rs, s);}
+void ac_behavior( mul ){ MUL(rn, rm, rs, s, RB, ac_pc);}
 // OBS: inversao dos parametros proposital ("fields with the same name...")
 
 //!Instruction smlal behavior method.
-void ac_behavior( smlal ){ SMLAL(rdhi, rdlo, rm, rs, s);}
+void ac_behavior( smlal ){ SMLAL(rdhi, rdlo, rm, rs, s, RB, ac_pc);}
 
 //!Instruction smull behavior method.
-void ac_behavior( smull ){ SMULL(rdhi, rdlo, rm, rs, s);}
+void ac_behavior( smull ){ SMULL(rdhi, rdlo, rm, rs, s, RB, ac_pc);}
 
 //!Instruction umlal behavior method.
-void ac_behavior( umlal ){ UMLAL(rdhi, rdlo, rm, rs, s);}
+void ac_behavior( umlal ){ UMLAL(rdhi, rdlo, rm, rs, s, RB, ac_pc);}
 
 //!Instruction umull behavior method.
-void ac_behavior( umull ){ UMULL(rdhi, rdlo, rm, rs, s);}
+void ac_behavior( umull ){ UMULL(rdhi, rdlo, rm, rs, s, RB, ac_pc);}
 
 //!Instruction ldr1 behavior method.
-void ac_behavior( ldr1 ){ LDR(rd, rn); }
+void ac_behavior( ldr1 ){ LDR(rd, rn, RB, ac_pc, MEM);  }
 
 //!Instruction ldrt1 behavior method.
-void ac_behavior( ldrt1 ){ LDRT(rd, rn);}
+void ac_behavior( ldrt1 ){ LDRT(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction ldrb1 behavior method.
-void ac_behavior( ldrb1 ){ LDRB(rd, rn);}
+void ac_behavior( ldrb1 ){ LDRB(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction ldrbt1 behavior method.
-void ac_behavior( ldrbt1 ){ LDRBT(rd, rn);}
+void ac_behavior( ldrbt1 ){ LDRBT(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction str1 behavior method.
-void ac_behavior( str1 ){ STR(rd, rn);}
+void ac_behavior( str1 ){ STR(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction strt1 behavior method.
-void ac_behavior( strt1 ){ STRT(rd, rn);}
+void ac_behavior( strt1 ){ STRT(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction strb1 behavior method.
-void ac_behavior( strb1 ){ STRB(rd, rn);}
+void ac_behavior( strb1 ){ STRB(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction strbt1 behavior method.
-void ac_behavior( strbt1 ){ STRBT(rd, rn);}
+void ac_behavior( strbt1 ){ STRBT(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction ldr2 behavior method.
-void ac_behavior( ldr2 ){ LDR(rd, rn);}
+void ac_behavior( ldr2 ){ LDR(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction ldrt2 behavior method.
-void ac_behavior( ldrt2 ){ LDRT(rd, rn);}
+void ac_behavior( ldrt2 ){ LDRT(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction ldrb2 behavior method.
-void ac_behavior( ldrb2 ){ LDRB(rd, rn);}
+void ac_behavior( ldrb2 ){ LDRB(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction ldrbt2 behavior method.
-void ac_behavior( ldrbt2 ){ LDRBT(rd, rn);}
+void ac_behavior( ldrbt2 ){ LDRBT(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction str2 behavior method.
-void ac_behavior( str2 ){ STR(rd, rn);}
+void ac_behavior( str2 ){ STR(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction strt2 behavior method.
-void ac_behavior( strt2 ){ STRT(rd, rn);}
+void ac_behavior( strt2 ){ STRT(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction strb2 behavior method.
-void ac_behavior( strb2 ){ STRB(rd, rn);}
+void ac_behavior( strb2 ){ STRB(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction strbt2 behavior method.
-void ac_behavior( strbt2 ){ STRBT(rd, rn);}
+void ac_behavior( strbt2 ){ STRBT(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction ldrh behavior method.
-void ac_behavior( ldrh ){ LDRH(rd, rn);}
+void ac_behavior( ldrh ){ LDRH(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction ldrsb behavior method.
-void ac_behavior( ldrsb ){ LDRSB(rd, rn);}
+void ac_behavior( ldrsb ){ LDRSB(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction ldrsh behavior method.
-void ac_behavior( ldrsh ){ LDRSH(rd, rn);}
+void ac_behavior( ldrsh ){ LDRSH(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction strh behavior method.
-void ac_behavior( strh ){ STRH(rd, rn);}
+void ac_behavior( strh ){ STRH(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction ldm behavior method.
-void ac_behavior( ldm ){ LDM(rlist,r);}
+void ac_behavior( ldm ){ LDM(rlist,r, RB, ac_pc, MEM); }
 
 //!Instruction stm behavior method.
-void ac_behavior( stm ){ STM(rlist);}
+void ac_behavior( stm ){ STM(rlist, RB, ac_pc, MEM); }
 
 //!Instruction cdp behavior method.
 void ac_behavior( cdp ){ CDP();}
@@ -2509,10 +2559,10 @@ void ac_behavior( swi ){
 }
 
 //!Instruction clz behavior method.
-void ac_behavior( clz ){ CLZ(rd, rm);}
+void ac_behavior( clz ){ CLZ(rd, rm, RB, ac_pc);}
 
 //!Instruction mrs behavior method.
-void ac_behavior( mrs ){ MRS(rd,r,zero3,subop2,func2,subop1,rm,field);}
+void ac_behavior( mrs ){ MRS(rd,r,zero3,subop2,func2,subop1,rm,field, RB, ac_pc);}
 
 //!Instruction msr1 behavior method.
 void ac_behavior( msr1 ){
@@ -2525,13 +2575,13 @@ void ac_behavior( msr2 ){
 }
 
 //!Instruction ldrd2 behavior method.
-void ac_behavior( ldrd ){ LDRD(rd, rn);}
+void ac_behavior( ldrd ){ LDRD(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction ldrd2 behavior method.
-void ac_behavior( strd ){ STRD(rd, rn);}
+void ac_behavior( strd ){ STRD(rd, rn, RB, ac_pc, MEM); }
 
 //!Instruction dsmla behavior method.
-void ac_behavior( dsmla ){ DSMLA(drd, drn); }
+void ac_behavior( dsmla ){ DSMLA(drd, drn, RB, ac_pc); }
 
 //!Instruction dsmlal behavior method.
 void ac_behavior( dsmlal ){
@@ -2539,7 +2589,7 @@ void ac_behavior( dsmlal ){
 }
 
 //!Instruction dsmul behavior method.
-void ac_behavior( dsmul ){ DSMUL(drd); }
+void ac_behavior( dsmul ){ DSMUL(drd, RB, ac_pc); }
 
 //!Instruction dsmlaw behavior method.
 void ac_behavior( dsmlaw ){
@@ -2551,3 +2601,6 @@ void ac_behavior( dsmulw ){
   printf("SMULW<y><x> nao implementada\n");
 }
 
+///Behaviors begin and end
+void ac_behavior( begin ) { }
+void ac_behavior( end ) { }
