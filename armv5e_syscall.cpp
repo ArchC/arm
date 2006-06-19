@@ -1,15 +1,22 @@
-/********************************************************/
-/* The ArchC ARMv5e functional model.                   */
-/* Author: Danilo Marcolin Caravana                     */
-/*                                                      */
-/* For more information on ArchC, please visit:         */
-/* http://www.archc.org                                 */
-/*                                                      */
-/* The ArchC Team                                       */
-/* Computer Systems Laboratory (LSC)                    */
-/* IC-UNICAMP                                           */
-/* http://www.lsc.ic.unicamp.br                         */
-/********************************************************/
+/**
+ * @file      armv5e_syscall.cpp
+ * @author    Danilo Marcolin Caravana
+ *
+ *            The ArchC Team
+ *            http://www.archc.org/
+ *
+ *            Computer Systems Laboratory (LSC)
+ *            IC-UNICAMP
+ *            http://www.lsc.ic.unicamp.br/
+ *
+ * @version   version?
+ * @date      Mon, 19 Jun 2006 15:33:28 -0300
+ * 
+ * @brief     The ArchC ARMv5e functional model.
+ * 
+ * @attention Copyright (C) 2002-2006 --- The ArchC Team
+ *
+ */
 
 #include "armv5e_syscall.H"
 
