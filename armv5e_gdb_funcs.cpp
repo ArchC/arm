@@ -9,7 +9,7 @@
  *            IC-UNICAMP
  *            http://www.lsc.ic.unicamp.br/
  *
- * @version   version?
+ * @version   1.0
  * @date      Mon, 19 Jun 2006 15:33:28 -0300
  * 
  * @brief     The ArchC ARMv5e functional model.
