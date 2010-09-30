@@ -26,7 +26,7 @@
 using namespace armv5e_parms;
 
 //DEBUG
-static const int DEBUG_INSTR = 1;
+//static const int DEBUG_INSTR = 1;
 
 /* Uncomment the line below to enable debugging info for this model. */
 //#define DEBUG
@@ -2654,7 +2654,11 @@ void ac_behavior( bkpt ){
 
 //!Instruction swi behavior method.
 void ac_behavior( swi ){
+#ifdef AC_COMPSIM
+  if (process_syscall(swinumber) == -1){
+#else
   if (syscall.process_syscall(swinumber) == -1) {
+#endif
     fprintf(stderr, "Warning: A syscall not implemented in this model was called.\n\tCaller address: 0x%X\n\tSWI number: 0x%X\t%d\n", (unsigned int)ac_pc, swinumber, swinumber);
   }
 }
