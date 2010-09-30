@@ -2655,12 +2655,12 @@ void ac_behavior( bkpt ){
 //!Instruction swi behavior method.
 void ac_behavior( swi ){
 #ifdef AC_COMPSIM
-  if (process_syscall(swinumber) == -1){
+  fprintf(stderr,"Instruction not supported. PC=%X\n", ac_pc.read());
 #else
   if (syscall.process_syscall(swinumber) == -1) {
-#endif
     fprintf(stderr, "Warning: A syscall not implemented in this model was called.\n\tCaller address: 0x%X\n\tSWI number: 0x%X\t%d\n", (unsigned int)ac_pc, swinumber, swinumber);
   }
+#endif
 }
 
 //!Instruction clz behavior method.
