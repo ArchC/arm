@@ -1,0 +1,44 @@
+This is the ARMv5e ArchC 2.1 functional model.
+
+This model has the system call emulation functions implemented,
+so it is a good idea to turn on the ABI option.
+
+To use acsim, the interpreted simulator:
+
+    acsim armv5e.ac -abi                (create the simulator)
+    make -f Makefile.archc              (compile)
+    armv5e.x --load=<file-path> [args]  (run an application)
+
+The [args] are optional arguments for the application.
+
+There are two formats recognized for application <file-path>:
+- ELF binary matching ArchC specifications
+- hexadecimal text file for ArchC
+
+
+To generate binary utilities use:
+
+    acbingen.sh -i<abs-install-path> -a<arch-name> armv5e.ac
+
+This will generate the tools source files using the architecture
+name <arch-name> (if omitted, armv5e is used), copy them to the
+binutils source tree, build and install them into the directory
+<abs-install-path> (which -must- be an absolute path).
+Use "acbingen.sh -h" to get information about the command-line
+options available.
+
+
+For more information visit http://www.archc.org
+
+
+CHANGELOG:
+==========
+
+Version 0.7.0:
+
+- Model passed selected Mediabench and Mibench applications
+- ArchC 2.1 compliant
+- Support for automatic generation of binary tools
+- Support for dynamic linker and loader when reading ELF files
+- Support for GDB
+- Support for compiled simulator and interpreted simulator
