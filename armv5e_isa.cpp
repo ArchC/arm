@@ -1707,8 +1707,8 @@ inline void MUL(int rd, int rm, int rs, bool s,
 
   // Special cases
   if((rd == PC)||(rm == PC)||(rs == PC)||(rd == rm)) {
-    printf("Unpredictable MUL instruction result\n");
-    return;    
+    fprintf(stderr, "Unpredictable MUL instruction result\n");
+//    return;    
   }
 
   RD2.entire = (long)(RM2.entire * RS2.entire);
