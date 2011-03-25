@@ -3,15 +3,16 @@
 
 //====================-- Machine specific rules --============================//
 
-//=====================-- Registers definitions --============================//
 
-// Current Program Status Register
-// FIXME: CPSR must be after GPR so GPR has higher priority in patterns!
-define registers CPSR:regs as ( SR );  // Status registers
+
+//=====================-- Registers definitions --============================//
 
 define registers GPR:regs as (
   r0  r1  r2  r3  r4  r5  r6  r7  r8  r9  r10 r11 r12 r13 r14 r15
 );
+
+// Current Program Status Register
+define registers CPSR:regs as ( SR );  // Status registers
 
 //===========================-- ABI stuff --==================================//
 
@@ -211,6 +212,10 @@ define instruction add1 semantic as (
   let Op1 = "", Op2 = "" in
   (transfer Op3:GPR (+ Op4:GPR RegRotAddrMode:fragment));
 ) cost 1;
+define instruction add1 semantic as (
+  let Op1 = "", Op2 = "" in
+  (transfer Op3:GPR (pcrelative Op4:GPR));
+) cost 1;
 define instruction add2 semantic as (
   let Op1 = "", Op2 = "" in
   (transfer Op3:GPR (+ Op4:GPR RegShiftedAddr2Mode:fragment));
@@ -218,6 +223,10 @@ define instruction add2 semantic as (
 define instruction add3 semantic as (
   let Op1 = "", Op2 = "" in
   (transfer Op3:GPR (+ Op4:GPR ImmAddrMode:fragment));
+) cost 1;
+define instruction add3 semantic as (
+  let Op1 = "", Op2 = "" in
+  (transfer Op3:GPR (pcrelative imm:Op4:tgtimm));
 ) cost 1;
 
 //====-- MUL --====//
@@ -286,7 +295,10 @@ define instruction mov1 semantic as (
     (transfer Op3:GPR SimpleAddrMode:fragment params (Op4));
 ) cost 1;
 define instruction mov1 semantic as (
-  (ret);
+  (ret);  
+) cost 1;
+define instruction mov1 semantic as (
+  (nop);  
 ) cost 1;
 define instruction mov1 semantic as (
   let Op1 = "", Op2 = "", Op5 = "LSL" in

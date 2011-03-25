@@ -2537,7 +2537,25 @@ void ac_behavior( bx ){ BX(rm, RB, ac_pc); }
 
 //!Instruction blx2 behavior method.
 void ac_behavior( blx2 ){
-  fprintf(stderr,"Warning: BLX instruction is not implemented in this model. PC=%X\n", ac_pc.read());
+  reg_t dest;
+  dest.entire = RB.read(rm);
+  dprintf("Instruction: BLX2\n");
+  dprintf("Branch to contents of reg: 0x%X\n", rm);
+  dprintf("Contents of register: 0x%lX\n", dest.entire);
+  // Note that PC is already incremented by 4, i.e., pointing to the next instruction
+  if(isBitSet(dest.entire,0)) {
+    fprintf(stderr,"Change to thumb not implemented in this model. PC=%X\n", ac_pc.read());
+    exit(EXIT_FAILURE);
+  } 
+
+  RB.write(LR, RB.read(PC));
+  dprintf("Branch return address: 0x%lX\n", RB.read(LR));
+
+  flags.T = isBitSet(rm, 0);
+  RB.write(PC, dest.entire & 0xFFFFFFFE);
+  ac_pc = RB.read(PC);
+
+  dprintf("Calculated branch destination: 0x%lX\n", RB.read(PC));  
 }
 
 //!Instruction swp behavior method.

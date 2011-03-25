@@ -226,6 +226,7 @@ AC_ISA(armv5e) {
     add1.set_asm("add%[cond]%sf %reg, %reg, %reg", cond, s, rd, rn, rm, shiftamount=0, shift=0); 
     add1.set_asm("add%[cond]%sf %reg, %reg, %reg, %shift #%imm", cond, s, rd, rn, rm, shift, shiftamount);
     add1.set_asm("add%[cond]%sf %reg, %reg, %reg, rrx", cond, s, rd, rn, rm, shift=3, shiftamount=0);
+    add1.set_asm("add%[cond]%sf %reg, PC, %reg", cond, s, rd, rm, shiftamount=0, shift=0, rn=reg.map_to("pc")); 
     add1.set_decoder(op=0x00, subop1=0x00, func1=0x04);
 
     add2.set_asm("add%[cond]%sf %reg, %reg, %reg, %shift %reg", cond, s, rd, rn, rm, shift, rs); 
@@ -334,7 +335,8 @@ AC_ISA(armv5e) {
 
 
     mov1.set_asm("mov%[cond]%sf %reg, %reg", cond, s, rd, rm, rn=0, shiftamount=0, shift=0);
-		mov1.set_asm("mov r15, r14", cond=0xE, s=0, rd=0xF, rm=0xE, rn=0, shiftamount=0, shift=0);
+    mov1.set_asm("mov r15, r14", cond=0xE, s=0, rd=0xF, rm=0xE, rn=0, shiftamount=0, shift=0);
+    mov1.set_asm("mov r0, r0", cond=0xE, s=0, rd=0x0, rm=0x0, rn=0, shiftamount=0, shift=0);
     mov1.set_asm("mov%[cond]%sf %reg, %reg, %shift #%imm", cond, s, rd, rm, shift, shiftamount, rn=0);
     mov1.set_asm("mov%[cond]%sf %reg, %reg, rrx", cond, s, rd, rm, shift=3, shiftamount=0, rn=0);
     mov1.set_decoder(op=0x00, subop1=0x00, func1=0x0D);
