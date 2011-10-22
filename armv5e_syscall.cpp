@@ -143,8 +143,11 @@ void armv5e_syscall::set_prog_args(int argc, char **argv) {
 #define ARM__NR_dup			(ARM__NR_SYSCALL_BASE+ 41)
 #define ARM__NR_times			(ARM__NR_SYSCALL_BASE+ 43)
 #define ARM__NR_brk			(ARM__NR_SYSCALL_BASE+ 45)
+#define ARM__NR_gettimeofday		(ARM__NR_SYSCALL_BASE+ 78)
+#define ARM__NR_settimeofday		(ARM__NR_SYSCALL_BASE+ 79)
 #define ARM__NR_mmap			(ARM__NR_SYSCALL_BASE+ 90)
 #define ARM__NR_munmap			(ARM__NR_SYSCALL_BASE+ 91)
+#define ARM__NR_socketcall		(ARM__NR_SYSCALL_BASE+102)
 #define ARM__NR_stat			(ARM__NR_SYSCALL_BASE+106)
 #define ARM__NR_lstat			(ARM__NR_SYSCALL_BASE+107)
 #define ARM__NR_fstat			(ARM__NR_SYSCALL_BASE+108)
@@ -200,7 +203,10 @@ int *armv5e_syscall::get_syscall_table() {
     ARM__NR_geteuid32,
     ARM__NR_getegid32,
     ARM__NR_fcntl64,
-    ARM__NR_exit_group
+    ARM__NR_exit_group,
+    ARM__NR_socketcall,
+    ARM__NR_gettimeofday,
+    ARM__NR_settimeofday
   };
   return syscall_table;
 }
