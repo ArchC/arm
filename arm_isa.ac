@@ -1,7 +1,7 @@
 /**
- * @file      armv5e_isa.ac
+ * @file      arm_isa.ac
  * @author    Danilo Marcolin Caravana
- *            Rafael Auler (acasm information)
+ *            Rafael Auler 
  *
  *            The ArchC Team
  *            http://www.archc.org/
@@ -11,87 +11,91 @@
  *            http://www.lsc.ic.unicamp.br/
  *
  * @version   1.0
- * @date      Thu, 29 Jun 2006 14:49:08 -0300
+ * @date      Apr 2012
  * 
  * @brief     The ArchC ARMv5e functional model.
  * 
- * @attention Copyright (C) 2002-2008 --- The ArchC Team
+ * @attention Copyright (C) 2002-2012 --- The ArchC Team
  *
  */
  
-AC_ISA(armv5e) {
+AC_ISA(arm) {	
+  ac_helper {
+    #include "arm_isa_helper.H" 
+  };
   
-  /* Instrucoes de processamento de dados - ULA */
+  /* Data processing instructions - ALU */
   ac_format Type_DPI1 = "%cond:4 %op:3 %func1:4 %s:1 %rn:4 %rd:4 %shiftamount:5 %shift:2 %subop1:1 %rm:4";
   ac_format Type_DPI2 = "%cond:4 %op:3 %func1:4 %s:1 %rn:4 %rd:4 %rs:4 %subop2:1 %shift:2 %subop1:1 %rm:4";
   ac_format Type_DPI3 = "%cond:4 %op:3 %func1:4 %s:1 %rn:4 %rd:4 %rotate:4 %imm8:8"; 
 
-  /* Instrucoes de branch - BBLT precisa de cond = 1111 - bx e blx2 sao do tipo MISC1*/
+  /* Branch instructions - BBLT needs cond = 1111 - bx and blx2 use type MISC1*/
   ac_format Type_BBL = "%cond:4 %op:3 %h:1 %offset:24";
   ac_format Type_BBLT = "%cond:4 %op:3 %h:1 %offset:24";
   ac_format Type_MBXBLX = "%cond:4 %op:3 %func1:4 %s:1 %one1:4 %one2:4 %one3:4 %subop2:1 %func2:2 %subop1:1 %rm:4";
   
-  /* Instrucoes de swap e multiplicacao */
+  /* Swap and multiply */
   ac_format Type_MULT1 = "%cond:4 %op:3 %func1:4 %s:1 %rn:4 %rd:4 %rs:4 %subop2:1 %func2:2 %subop1:1 %rm:4";
   ac_format Type_MULT2 = "%cond:4 %op:3 %func1:4 %s:1 %rdhi:4 %rdlo:4 %rs:4 %subop2:1 %func2:2 %subop1:1 %rm:4";
 
-  /* Instrucoes de load/store */
+  /* Load/Store */
   ac_format Type_LSI = "%cond:4 %op:3 %p:1 %u:1 %b:1 %w:1 %l:1 %rn:4 %rd:4 %imm12:12";
   ac_format Type_LSR = "%cond:4 %op:3 %p:1 %u:1 %b:1 %w:1 %l:1 %rn:4 %rd:4 %shiftamount:5 %shift:2 %subop1:1 %rm:4";
   ac_format Type_LSE = "%cond:4 %op:3 %p:1 %u:1 %i:1 %w:1 %l:1 %rn:4 %rd:4 %addr1:4 %subop2:1 %ss:1 %hh:1 %subop1:1 %addr2:4";
   ac_format Type_LSM = "%cond:4 %op:3 %p:1 %u:1 %r:1 %w:1 %l:1 %rn:4 %rlist:16";
 
-  /* Instrucoes do coprocessador */
+  /* Coprocessor instructions */
   ac_format Type_CDP = "%cond:4 %op:3 %subop3:1 %funcc1:4 %crn:4 %crd:4 %cp_num:4 %funcc3:3 %subop1:1 %crm:4";
   ac_format Type_CRT = "%cond:4 %op:3 %subop3:1 %funcc2:3 %l:1 %crn:4 %rd:4 %cp_num:4 %funcc3:3 %subop1:1 %crm:4";
   ac_format Type_CLS = "%cond:4 %op:3 %p:1 %u:1 %n:1 %w:1 %l:1 %rn:4 %crd:4 %cp_num:4 %imm8:8";
  
-  /* Instrucoes especiais */
+  /* Special instructions */
   ac_format Type_MBKPT = "%cond:4 %op:3 %func1:4 %s:1 %immediate:12 %subop2:1 %func2:2 %subop1:1 %rm:4";
   ac_format Type_MSWI = "%cond:4 %op:3 %subop3:1 %swinumber:24";
   ac_format Type_MCLZ = "%cond:4 %op:3 %func1:4 %s:1 %one1:4 %rd:4 %one3:4 %subop2:1 %func2:2 %subop1:1 %rm:4";
   ac_format Type_MMSR1 = "%cond:4 %op:3 %func11:2 %r:1 %func12:2 %fieldmask:4 %rd:4 %zero3:4 %subop2:1 %func2:2 %subop1:1 %rm:4";
   ac_format Type_MMSR2 = "%cond:4 %op:3 %func11:2 %r:1 %func12:2 %fieldmask:4 %one2:4 %rotate:4 %imm8:8";
 
-  /* Instrucoes de multiplicacao DSP */
+  /* DSP multiply instructions */
   ac_format Type_DSPSM = "%cond:4 %sm:8 %drd:4 %drn:4 %rs:4 %subop2:1 %yy:1 %xx:1 %subop1:1 %rm:4";
 
-  /* Instrucoes de processamento de dados - ULA */
+  /* Data processing instructions - ALU */
   ac_instr<Type_DPI1> and1, eor1, sub1, rsb1, add1, adc1, sbc1, rsc1, tst1, teq1, cmp1, cmn1, orr1, mov1, bic1, mvn1;
   ac_instr<Type_DPI2> and2, eor2, sub2, rsb2, add2, adc2, sbc2, rsc2, tst2, teq2, cmp2, cmn2, orr2, mov2, bic2, mvn2;
   ac_instr<Type_DPI3> and3, eor3, sub3, rsb3, add3, adc3, sbc3, rsc3, tst3, teq3, cmp3, cmn3, orr3, mov3, bic3, mvn3;
 
-  /* Instrucoes de branch - BBLT precisa de cond = 1111 - bx e blx2 sao do tipo MISC1 */
+  /* Branch instructions - BBLT needs cond = 1111 - bx and blx2 use type MISC1*/
   ac_instr<Type_BBLT> blx1;
   ac_instr<Type_BBL> b;
   ac_instr<Type_MBXBLX> bx, blx2;
 
-  /* Instrucoes de swap e multiplicacao */
+  /* Swap and multiply */
   ac_instr<Type_MULT1> swp, swpb, mla, mul;
   ac_instr<Type_MULT2> smlal, smull, umlal, umull;
 
-  /* Instrucoes de load/store */
+  /* Load/Store */
   ac_instr<Type_LSI> ldrt1, ldrbt1, ldr1, ldrb1, strt1, strbt1, str1, strb1;
   ac_instr<Type_LSR> ldrt2, ldrbt2, ldr2, ldrb2, strt2, strbt2, str2, strb2;
   ac_instr<Type_LSE> ldrh, ldrsb, ldrsh, strh, ldrd, strd; // ldrd e strd sao instrucoes DSP
   ac_instr<Type_LSM> ldm, stm;
 
-  /* Instrucoes do coprocessador */
+  /* Coprocessor instructions */
   ac_instr<Type_CDP> cdp;
   ac_instr<Type_CRT> mcr, mrc;
   ac_instr<Type_CLS> ldc, stc;
 
-  /* Instrucoes especiais */
+  /* Special instructions */
   ac_instr<Type_MBKPT> bkpt;
   ac_instr<Type_MSWI> swi;
   ac_instr<Type_MCLZ> clz;
   ac_instr<Type_MMSR1> mrs, msr1;
   ac_instr<Type_MMSR2> msr2;
   
-  /* Instrucoes DSP */
-  /* O tipo LSE de Load/Store possui instrucoes DSP (ldrd e strd) */
+  /* DSP Instructions */
+  /* LSE Load/Store format has DSP instructions (ldrd and strd) */
   ac_instr<Type_DSPSM> dsmla, dsmlal, dsmul, dsmlaw, dsmulw;
   
+  /* ARM register aliases */
   ac_asm_map reg {
    "r"[0..15] = [0..15];
    "a"[1..4] = [0..3];
@@ -106,6 +110,7 @@ AC_ISA(armv5e) {
    "pc" = 15;
   }
 
+  /* ARM instruction predicates */
   ac_asm_map cond {
     "eq" = 0;
     "ne" = 1;
@@ -124,6 +129,7 @@ AC_ISA(armv5e) {
     ""   = 14;
   }
 
+  /* ARM operand shifting options */
   ac_asm_map shift {
     "LSL", "ASL", "lsl", "asl" = 0;
     "LSR", "lsr" = 1;
@@ -131,18 +137,19 @@ AC_ISA(armv5e) {
     "ROR", "ror" = 3;
   }
 
+  /* ARM 's flag' switch */
   ac_asm_map sf {
     "" = 0;
     "s" = 1;    
   }
 
-  /* MSR/MRS Instruction special fields */
+  /* MSR/MRS instruction special fields */
   ac_asm_map psr {
     "cpsr" = 0;
     "spsr" = 1;
   }
 
-  /* Multiple Load/Store type - more detail in set_asm STM/LDM definitions */
+  /* Multiple load/store stack specification aliases */
   ac_asm_map mlstype {
     "da" = 0;
     "ia" = 1;
@@ -164,10 +171,9 @@ AC_ISA(armv5e) {
   }  
 
 
-  ISA_CTOR(xscale) {
+  ISA_CTOR(arm) {
 
     /* Defining assembler-specific constraints */
-
     assembler.set_comment("@");	
     assembler.set_line_comment("@#");
 

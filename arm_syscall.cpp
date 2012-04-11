@@ -1,5 +1,5 @@
 /**
- * @file      armv5e_syscall.cpp
+ * @file      arm_syscall.cpp
  * @author    Danilo Marcolin Caravana
  *            Rafael Auler
  *
@@ -11,19 +11,19 @@
  *            http://www.lsc.ic.unicamp.br/
  *
  * @version   1.0
- * @date      Mon, 19 Jun 2006 15:33:28 -0300
+ * @date      Apr 2012
  * 
  * @brief     The ArchC ARMv5e functional model.
  * 
- * @attention Copyright (C) 2002-2006 --- The ArchC Team
+ * @attention Copyright (C) 2002-2012 --- The ArchC Team
  *
  */
 
-#include "armv5e_syscall.H"
+#include "arm_syscall.H"
 
-using namespace armv5e_parms;
+using namespace arm_parms;
 
-void armv5e_syscall::get_buffer(int argn, unsigned char* buf, unsigned int size) {
+void arm_syscall::get_buffer(int argn, unsigned char* buf, unsigned int size) {
   unsigned int addr = RB.read(argn);
 
   for (unsigned int i = 0; i<size; i++, addr++) {
@@ -31,7 +31,7 @@ void armv5e_syscall::get_buffer(int argn, unsigned char* buf, unsigned int size)
   }
 }
 
-void armv5e_syscall::set_buffer(int argn, unsigned char* buf, unsigned int size) {
+void arm_syscall::set_buffer(int argn, unsigned char* buf, unsigned int size) {
   unsigned int addr = RB.read(argn);
 
   for (unsigned int i = 0; i<size; i++, addr++) {
@@ -39,7 +39,7 @@ void armv5e_syscall::set_buffer(int argn, unsigned char* buf, unsigned int size)
   }
 }
 
-void armv5e_syscall::set_buffer_noinvert(int argn, unsigned char* buf, unsigned int size) {
+void arm_syscall::set_buffer_noinvert(int argn, unsigned char* buf, unsigned int size) {
   unsigned int addr = RB.read(argn);
 
   for (unsigned int i = 0; i<size; i+=4, addr+=4) {
@@ -47,32 +47,32 @@ void armv5e_syscall::set_buffer_noinvert(int argn, unsigned char* buf, unsigned 
   }
 }
 
-void armv5e_syscall::set_pc(unsigned val) {
+void arm_syscall::set_pc(unsigned val) {
   RB.write(15, val);
   ac_pc.write(val);
 }
  
-void armv5e_syscall::set_return(unsigned val) {
+void arm_syscall::set_return(unsigned val) {
   RB.write(14, val);
 }
  
-unsigned armv5e_syscall::get_return() {
+unsigned arm_syscall::get_return() {
   return (unsigned) RB.read(14);
 }
 
-int armv5e_syscall::get_int(int argn) {
+int arm_syscall::get_int(int argn) {
   return RB.read(argn);
 }
 
-void armv5e_syscall::set_int(int argn, int val) {
+void arm_syscall::set_int(int argn, int val) {
   RB.write(argn, val);
 }
 
-void armv5e_syscall::return_from_syscall() {
+void arm_syscall::return_from_syscall() {
   ac_pc = RB.read(14);
 }
 
-void armv5e_syscall::set_prog_args(int argc, char **argv) {
+void arm_syscall::set_prog_args(int argc, char **argv) {
   int i, j, base;
 
   unsigned int ac_argv[30];
@@ -167,7 +167,7 @@ void armv5e_syscall::set_prog_args(int argc, char **argv) {
 #define ARM__NR_exit_group	        (ARM__NR_SYSCALL_BASE+248)
 
 
-int *armv5e_syscall::get_syscall_table() {
+int *arm_syscall::get_syscall_table() {
   static int syscall_table[] = {
     ARM__NR_restart_syscall,
     ARM__NR_exit,

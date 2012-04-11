@@ -13,20 +13,20 @@
  ******************************************************/
  
 
-#ifndef armv5e_SYSCALL_H
-#define armv5e_SYSCALL_H
+#ifndef arm_SYSCALL_H
+#define arm_SYSCALL_H
 
-#include "armv5e_arch.H"
-#include "armv5e_arch_ref.H"
-#include "armv5e_parms.H"
+#include "arm_arch.H"
+#include "arm_arch_ref.H"
+#include "arm_parms.H"
 #include "ac_syscall.H"
 
-//armv5e system calls
-class armv5e_syscall : public ac_syscall<armv5e_parms::ac_word, armv5e_parms::ac_Hword>, public armv5e_arch_ref
+//arm system calls
+class arm_syscall : public ac_syscall<arm_parms::ac_word, arm_parms::ac_Hword>, public arm_arch_ref
 {
 public:
-  armv5e_syscall(armv5e_arch& ref) : ac_syscall<armv5e_parms::ac_word, armv5e_parms::ac_Hword>(ref, armv5e_parms::AC_RAMSIZE), armv5e_arch_ref(ref) {};
-  virtual ~armv5e_syscall() {};
+  arm_syscall(arm_arch& ref) : ac_syscall<arm_parms::ac_word, arm_parms::ac_Hword>(ref, arm_parms::AC_RAMSIZE), arm_arch_ref(ref) {};
+  virtual ~arm_syscall() {};
 
   void get_buffer(int argn, unsigned char* buf, unsigned int size);
   void set_buffer(int argn, unsigned char* buf, unsigned int size);
