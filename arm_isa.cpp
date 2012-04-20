@@ -1167,7 +1167,7 @@ inline void LDM(arm_isa *ref, int rlist, bool r,
       if(isBitSet(rlist,i)) {
         RB_write(i,MEM.read(ref->ls_address.entire));
         ref->ls_address.entire += 4;
-        dprintf(" *  Loaded register: 0x%X; Value: 0x%X; Next address: 0x%lX\n", i,RB_read(i),ref->ls_address.entire);
+        dprintf(" *  Loaded register: 0x%X; Value: 0x%X; Next address: 0x%lX\n", i,RB_read(i),ref->ls_address.entire-4);
       }
     }
     
