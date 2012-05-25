@@ -26,6 +26,9 @@
 
 using namespace arm_parms;
 
+#define DEFAULT_STACK_SIZE (512 * 1024)
+static int processors_started = 0;
+
 //If you want debug information for this model, uncomment next line
 //#define DEBUG_MODEL
 
@@ -46,6 +49,9 @@ using namespace arm_parms;
 
 #ifdef DEBUG_MODEL
 #include <stdarg.h>
+
+
+
 static inline int dprintf(const char *format, ...) {
   int ret;
   va_list args;
@@ -78,6 +84,8 @@ void ac_behavior( begin ) {
   arm_proc_mode.irq = false;
   ac_pc = 0;
 #endif
+ RB.write(13, AC_RAM_END - 1024 - processors_started++ * DEFAULT_STACK_SIZE);
+
 }
 
 //!Generic instruction behavior method.

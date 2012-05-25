@@ -91,16 +91,16 @@ void arm_syscall::set_prog_args(int argc, char **argv) {
   ac_argv[argc+1] = 0;
 
   //Ajust %sp and write argument string
-  RB.write(13, AC_RAM_END-512);
-  set_buffer(13, (unsigned char*) ac_argstr, 512);
+  RB.write(0, AC_RAM_END-512);
+  set_buffer(0, (unsigned char*) ac_argstr, 512);
 
   //Ajust %sp and write string pointers
-  RB.write(13, AC_RAM_END-512-120);
-  set_buffer_noinvert(13, (unsigned char*) ac_argv, 120);
+  RB.write(0, AC_RAM_END-512-120);
+  set_buffer_noinvert(0, (unsigned char*) ac_argv, 120);
 
   if (ref.ac_dyn_loader.is_glibc()) {
     //Put argc into stack (required by glibc)
-    RB.write(13, AC_RAM_END-512-124);
+    //RB.write(13, AC_RAM_END-512-124);
     MEM.write(AC_RAM_END-512-124, argc);
   }
 
