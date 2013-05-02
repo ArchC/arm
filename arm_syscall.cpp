@@ -100,7 +100,7 @@ void arm_syscall::set_prog_args(int argc, char **argv) {
 
   if (ref.ac_dyn_loader.is_glibc()) {
     //Put argc into stack (required by glibc)
-    //RB.write(13, AC_RAM_END-512-124);
+    RB.write(13, AC_RAM_END-512-124);
     MEM.write(AC_RAM_END-512-124, argc);
   }
 
