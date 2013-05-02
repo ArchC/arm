@@ -30,7 +30,7 @@ using namespace arm_parms;
 static int processors_started = 0;
 
 //If you want debug information for this model, uncomment next line
-#define DEBUG_MODEL
+//#define DEBUG_MODEL
 
 //If you want the processor to operate in system model instead
 //of user model, uncomment next line
