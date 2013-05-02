@@ -30,7 +30,7 @@ using namespace arm_parms;
 static int processors_started = 0;
 
 //If you want debug information for this model, uncomment next line
-//#define DEBUG_MODEL
+#define DEBUG_MODEL
 
 //If you want the processor to operate in system model instead
 //of user model, uncomment next line
@@ -84,8 +84,23 @@ void ac_behavior( begin ) {
   arm_proc_mode.irq = false;
   ac_pc = 0;
 #endif
- RB.write(13, AC_RAM_END - 1024 - processors_started++ * DEFAULT_STACK_SIZE);
+  // Initializing flags and model variables
+  flags.Z = false;
+  flags.C = false;
+  flags.N = false; 
+  flags.V = false;
+  flags.Q = false;
+  flags.T = false;
+  execute = false;
+  dpi_shiftop.entire = 0;
+  dpi_shiftopcarry = false;
+  ls_address.entire = 0;
+  lsm_startaddress.entire = 0;
+  lsm_endaddress.entire = 0;
+  OP1.entire = 0;
+  OP2.entire = 0;
 
+  RB.write(13, AC_RAM_END - 1024 - processors_started++ * DEFAULT_STACK_SIZE);
 }
 
 //!Generic instruction behavior method.
@@ -847,7 +862,7 @@ inline void ADC(arm_isa* ref, int rd, int rn, bool s,
   RN2.entire = RB_read(rn);
   if(rn == PC) RN2.entire += 4;
   dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n  Carry=%d\n", RN2.entire,ref->dpi_shiftop.entire,ref->flags.C);
-  soma.hilo = (uint64_t)RN2.entire + ref->dpi_shiftop.entire;
+  soma.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)ref->dpi_shiftop.entire;
   if (ref->flags.C) soma.hilo++;
   RD2.entire = soma.reg[0];
   RB_write(rd, RD2.entire);
@@ -882,7 +897,7 @@ inline void ADD(arm_isa* ref, int rd, int rn, bool s,
   RN2.entire = RB_read(rn);
   if(rn == PC) RN2.entire += 4;
   dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
-  soma.hilo = (uint64_t)RN2.entire + ref->dpi_shiftop.entire;
+  soma.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)ref->dpi_shiftop.entire;
   RD2.entire = soma.reg[0];
   RB_write(rd, RD2.entire);
   if ((s == 1)&&(rd == PC)) {
@@ -1078,7 +1093,7 @@ inline void CMN(arm_isa *ref, int rn,
   dprintf("Instruction: CMN\n");
   RN2.entire = RB_read(rn);
   dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
-  soma.hilo = (uint64_t)RN2.entire + ref->dpi_shiftop.entire;
+  soma.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)ref->dpi_shiftop.entire;
   alu_out.entire = soma.reg[0];
 
   ref->flags.N = getBit(alu_out.entire,31);
@@ -1103,7 +1118,7 @@ inline void CMP(arm_isa *ref, int rn,
   RN2.entire = RB_read(rn);
   dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
   neg_shiftop.entire = - ref->dpi_shiftop.entire;
-  result.hilo = (uint64_t)RN2.entire + neg_shiftop.entire;
+  result.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)neg_shiftop.entire;
   alu_out.entire = result.reg[0];
 
   ref->flags.N = getBit(alu_out.entire,31);
@@ -1675,7 +1690,7 @@ inline void RSB(arm_isa* ref, int rd, int rn, bool s,
   if(rn == PC) RN2.entire += 4;
   dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
   neg_RN2.entire = - RN2.entire;
-  result.hilo = (uint64_t)ref->dpi_shiftop.entire + neg_RN2.entire;
+  result.hilo = (uint64_t)(uint32_t)ref->dpi_shiftop.entire + (uint64_t)(uint32_t)neg_RN2.entire;
   RD2.entire = result.reg[0];
   RB_write(rd, RD2.entire);
   if ((s == 1) && (rd == PC)) {
@@ -1715,7 +1730,7 @@ inline void RSC(arm_isa* ref, int rd, int rn, bool s,
   dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n  Carry = %d\n", RN2.entire,ref->dpi_shiftop.entire, ref->flags.C);
   neg_RN2.entire = - RN2.entire;
   if (!ref->flags.C) neg_RN2.entire--;
-  result.hilo = (uint64_t)ref->dpi_shiftop.entire + neg_RN2.entire;
+  result.hilo = (uint64_t)(uint32_t)ref->dpi_shiftop.entire + (uint64_t)(uint32_t)neg_RN2.entire;
   RD2.entire = result.reg[0];
 
   RB_write(rd, RD2.entire);
@@ -1756,7 +1771,7 @@ inline void SBC(arm_isa* ref, int rd, int rn, bool s,
   dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n  Carry = %d\n", RN2.entire,ref->dpi_shiftop.entire, ref->flags.C);
   neg_shiftop.entire = - ref->dpi_shiftop.entire; 
   if (!ref->flags.C) neg_shiftop.entire--;
-  result.hilo = (uint64_t)RN2.entire + neg_shiftop.entire;
+  result.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)neg_shiftop.entire;
   RD2.entire = result.reg[0];
   RB_write(rd, RD2.entire);
   if ((s == 1)&&(rd == PC)) {
@@ -1804,7 +1819,7 @@ inline void SMLAL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
     return;  
   }
 
-  result.hilo = (int64_t)RM2.entire * RS2.entire + acc.hilo;
+  result.hilo = (int64_t)RM2.entire * (int64_t)RS2.entire + acc.hilo;
   RB_write(rdhi,result.reg[1]);
   RB_write(rdlo,result.reg[0]);
   if(s == 1){
@@ -1837,7 +1852,7 @@ inline void SMULL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
     return;  
   }
 
-  result.hilo = (int64_t)RM2.entire * RS2.entire;
+  result.hilo = (int64_t)RM2.entire * (int64_t)RS2.entire;
   RB_write(rdhi,result.reg[1]);
   RB_write(rdlo,result.reg[0]);
   if(s == 1){
@@ -2034,7 +2049,7 @@ inline void SUB(arm_isa* ref, int rd, int rn, bool s,
   if(rn == PC) RN2.entire += 4;
   dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
   neg_shiftop.entire = - ref->dpi_shiftop.entire;
-  result.hilo = (uint64_t)RN2.entire + neg_shiftop.entire;
+  result.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)neg_shiftop.entire;
   RD2.entire = result.reg[0];
   RB_write(rd, RD2.entire);
   if ((s == 1)&&(rd == PC)) {
@@ -2202,7 +2217,7 @@ inline void UMLAL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
     return;  
   }
 
-  result.hilo = (uint64_t)RM2.entire * (uint64_t)RS2.entire 
+  result.hilo = (uint64_t)(uint32_t)RM2.entire * (uint64_t)(uint32_t)RS2.entire 
     + (uint64_t)acc.hilo;
   RB_write(rdhi,result.reg[1]);
   RB_write(rdlo,result.reg[0]);
@@ -2238,7 +2253,7 @@ inline void UMULL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
     return;  
   }
   
-  result.hilo = (uint64_t)RM2.entire * (uint64_t)RS2.entire;
+  result.hilo = (uint64_t)(uint32_t)RM2.entire * (uint64_t)(uint32_t)RS2.entire;
   RB_write(rdhi,result.reg[1]);
   RB_write(rdlo,result.reg[0]);
   if(s == 1){
