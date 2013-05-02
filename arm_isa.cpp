@@ -198,7 +198,7 @@ void ac_behavior( Type_DPI1 ) {
     if ((shiftamount >= 0) && (shiftamount <= 31)) {
       if (shiftamount == 0) { //Rotate right with extend
 	dpi_shiftopcarry = getBit(RM2.entire, 0);
-	dpi_shiftop.entire = (((int32_t)RM2.entire) >> 1);
+	dpi_shiftop.entire = (((uint32_t)RM2.entire) >> 1);
 	if (flags.C) setBit(dpi_shiftop.entire, 31);
       } else {
 	dpi_shiftop.entire = (RotateRight(shiftamount, RM2)).entire;
@@ -1526,7 +1526,8 @@ inline void MOV(arm_isa* ref, int rd, bool s,
     }
     ref->SPSRtoCPSR();
 #endif
-  } else if (s == 1) {
+  }
+  if (s == 1) {
     ref->flags.N = getBit(ref->dpi_shiftop.entire, 31);
     ref->flags.Z = ((ref->dpi_shiftop.entire == 0) ? true : false);
     ref->flags.C = ref->dpi_shiftopcarry;
