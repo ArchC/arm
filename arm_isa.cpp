@@ -995,7 +995,7 @@ inline void BX(arm_isa *ref, int rm,
 
   if(isBitSet(rm,0)) {
     dprintf("Change to thumb not implemented in this model. PC=%X\n", ac_pc.read());
-    return;
+//    return;
   } 
 
   ref->flags.T = isBitSet(rm, 0);
@@ -1729,8 +1729,8 @@ inline void RSC(arm_isa* ref, int rd, int rn, bool s,
   RN2.entire = RB_read(rn);
   if(rn == PC) RN2.entire += 4;
   dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n  Carry = %d\n", RN2.entire,ref->dpi_shiftop.entire, ref->flags.C);
+  if (!ref->flags.C) { RN2.entire++; }  
   neg_RN2.entire = - RN2.entire;
-  if (!ref->flags.C) neg_RN2.entire--;
   result.hilo = (uint64_t)(uint32_t)ref->dpi_shiftop.entire + (uint64_t)(uint32_t)neg_RN2.entire;
   RD2.entire = result.reg[0];
 
@@ -1748,7 +1748,10 @@ inline void RSC(arm_isa* ref, int rd, int rn, bool s,
     if (s == 1) {
       ref->flags.N = getBit(RD2.entire,31);
       ref->flags.Z = ((RD2.entire == 0) ? true : false);
-      ref->flags.C = !(((uint32_t) RN2.entire > (uint32_t) ref->dpi_shiftop.entire) ? true : false);
+      if ((!ref->flags.C)&&(RN2.entire == 0))    
+          ref->flags.C = false;                  
+      else
+          ref->flags.C = !(((uint32_t) RN2.entire > (uint32_t) ref->dpi_shiftop.entire) ? true : false);
       ref->flags.V = (((getBit(neg_RN2.entire,31) && getBit(ref->dpi_shiftop.entire,31) && (!getBit(RD2.entire,31))) ||
 		  ((!getBit(neg_RN2.entire,31)) && (!getBit(ref->dpi_shiftop.entire,31)) && getBit(RD2.entire,31))) ? true : false);
     }
@@ -1770,8 +1773,8 @@ inline void SBC(arm_isa* ref, int rd, int rn, bool s,
   RN2.entire = RB_read(rn);
   if(rn == PC) RN2.entire += 4;
   dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n  Carry = %d\n", RN2.entire,ref->dpi_shiftop.entire, ref->flags.C);
-  neg_shiftop.entire = - ref->dpi_shiftop.entire; 
-  if (!ref->flags.C) neg_shiftop.entire--;
+  if (!ref->flags.C) ref->dpi_shiftop.entire++;     
+  neg_shiftop.entire = - ref->dpi_shiftop.entire;   
   result.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)neg_shiftop.entire;
   RD2.entire = result.reg[0];
   RB_write(rd, RD2.entire);
@@ -1788,7 +1791,10 @@ inline void SBC(arm_isa* ref, int rd, int rn, bool s,
     if (s == 1) {
       ref->flags.N = getBit(RD2.entire,31);
       ref->flags.Z = ((RD2.entire == 0) ? true : false);
-      ref->flags.C = !(((uint32_t) ref->dpi_shiftop.entire > (uint32_t) RN2.entire) ? true : false);
+      if ((!ref->flags.C)&&(ref->dpi_shiftop.entire==0))
+          ref->flags.C = false;
+      else
+          ref->flags.C = !(((uint32_t) ref->dpi_shiftop.entire > (uint32_t) RN2.entire) ? true : false);
       ref->flags.V = (((getBit(RN2.entire,31) && getBit(neg_shiftop.entire,31) && (!getBit(RD2.entire,31))) ||
 		  ((!getBit(RN2.entire,31)) && (!getBit(neg_shiftop.entire,31)) && getBit(RD2.entire,31))) ? true : false);
     }
