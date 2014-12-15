@@ -852,7 +852,7 @@ void ac_behavior( Type_DSPSM ){
 
 //------------------------------------------------------
 inline void ADC(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
 		ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2, RN2;
@@ -887,7 +887,7 @@ inline void ADC(arm_isa* ref, int rd, int rn, bool s,
 
 //------------------------------------------------------
 inline void ADD(arm_isa* ref, int rd, int rn, bool s,
-    ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+    ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
     ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2, RN2;
@@ -925,7 +925,7 @@ inline void ADD(arm_isa* ref, int rd, int rn, bool s,
 
 //------------------------------------------------------
 inline void AND(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2, RN2;
@@ -960,7 +960,7 @@ inline void AND(arm_isa* ref, int rd, int rn, bool s,
 
 //------------------------------------------------------
 inline void B(arm_isa* ref, int h, int offset,
-       ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+       ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
        ac_reg<unsigned>& ac_pc) {
 
   uint32_t mem_pos, s_extend;
@@ -988,7 +988,7 @@ inline void B(arm_isa* ref, int h, int offset,
 
 //------------------------------------------------------
 inline void BX(arm_isa *ref, int rm,
-        ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+        ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
         ac_reg<unsigned>& ac_pc) {
 
   dprintf("Instruction: BX\n");
@@ -1006,7 +1006,7 @@ inline void BX(arm_isa *ref, int rm,
 
 //------------------------------------------------------
 inline void BIC(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2, RN2;
@@ -1047,7 +1047,7 @@ inline void CDP(){
 
 //------------------------------------------------------
 inline void CLZ(arm_isa* ref, int rd, int rm,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2, RM2;
@@ -1084,7 +1084,7 @@ inline void CLZ(arm_isa* ref, int rd, int rm,
 
 //------------------------------------------------------
 inline void CMN(arm_isa *ref, int rn,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RN2, alu_out;
@@ -1108,7 +1108,7 @@ inline void CMN(arm_isa *ref, int rn,
 
 //------------------------------------------------------
 inline void CMP(arm_isa *ref, int rn,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RN2, alu_out, neg_shiftop;
@@ -1133,7 +1133,7 @@ inline void CMP(arm_isa *ref, int rn,
 
 //------------------------------------------------------
 inline void EOR(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2, RN2;
@@ -1174,7 +1174,7 @@ inline void LDC(){
 
 //------------------------------------------------------
 inline void LDM(arm_isa *ref, int rlist, bool r,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   // todo special cases
@@ -1234,7 +1234,7 @@ inline void LDM(arm_isa *ref, int rlist, bool r,
 
 //------------------------------------------------------
 inline void LDR(arm_isa* ref, int rd, int rn,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   int32_t value;
@@ -1282,7 +1282,7 @@ inline void LDR(arm_isa* ref, int rd, int rn,
 
 //------------------------------------------------------
 inline void LDRB(arm_isa* ref, int rd, int rn,
-          ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
   uint8_t value;
 
@@ -1302,7 +1302,7 @@ inline void LDRB(arm_isa* ref, int rd, int rn,
 
 //------------------------------------------------------
 inline void LDRBT(arm_isa* ref, int rd, int rn,
-           ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
            ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   uint8_t value;
@@ -1323,7 +1323,7 @@ inline void LDRBT(arm_isa* ref, int rd, int rn,
 
 //------------------------------------------------------
 inline void LDRD(arm_isa* ref, int rd, int rn,
-          ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
   uint32_t value1, value2;
 
@@ -1354,7 +1354,7 @@ inline void LDRD(arm_isa* ref, int rd, int rn,
 }
 //------------------------------------------------------
 inline void LDRH(arm_isa* ref, int rd, int rn,
-          ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
   uint32_t value;
 
@@ -1380,7 +1380,7 @@ inline void LDRH(arm_isa* ref, int rd, int rn,
 
 //------------------------------------------------------
 inline void LDRSB(arm_isa* ref, int rd, int rn,
-           ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
            ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   uint32_t data;
@@ -1401,7 +1401,7 @@ inline void LDRSB(arm_isa* ref, int rd, int rn,
 
 //------------------------------------------------------
 inline void LDRSH(arm_isa* ref, int rd, int rn,
-           ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
            ac_reg<unsigned>& ac_pc, ac_memory& MEM){
 
   uint32_t data;
@@ -1429,7 +1429,7 @@ inline void LDRSH(arm_isa* ref, int rd, int rn,
 
 //------------------------------------------------------
 inline void LDRT(arm_isa* ref, int rd, int rn,
-          ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   int addr10;
@@ -1479,7 +1479,7 @@ inline void MCR(){
 
 //------------------------------------------------------
 inline void MLA(arm_isa* ref, int rd, int rn, int rm, int rs, bool s,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2, RN2, RM2, RS2;
@@ -1511,7 +1511,7 @@ inline void MLA(arm_isa* ref, int rd, int rn, int rm, int rs, bool s,
 
 //------------------------------------------------------
 inline void MOV(arm_isa* ref, int rd, bool s,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
   
   dprintf("Instruction: MOV\n");
@@ -1547,7 +1547,7 @@ inline void MRC(){
 
 //------------------------------------------------------
 inline void MRS(arm_isa* ref, int rd, bool r, int zero3, int subop2, int func2, int subop1, int rm, int field,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   unsigned res;
@@ -1583,7 +1583,7 @@ inline void MRS(arm_isa* ref, int rd, bool r, int zero3, int subop2, int func2, 
 
 //------------------------------------------------------
 inline void MUL(arm_isa* ref, int rd, int rm, int rs, bool s,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2, RM2, RS2;
@@ -1614,7 +1614,7 @@ inline void MUL(arm_isa* ref, int rd, int rm, int rs, bool s,
 
 //------------------------------------------------------
 inline void MVN(arm_isa* ref, int rd, bool s,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   dprintf("Instruction: MVN\n");
@@ -1645,7 +1645,7 @@ inline void MVN(arm_isa* ref, int rd, bool s,
 
 //------------------------------------------------------
 inline void ORR(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2, RN2;
@@ -1680,7 +1680,7 @@ inline void ORR(arm_isa* ref, int rd, int rn, bool s,
 
 //------------------------------------------------------
 inline void RSB(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2, RN2, neg_RN2;
@@ -1719,7 +1719,7 @@ inline void RSB(arm_isa* ref, int rd, int rn, bool s,
 
 //------------------------------------------------------
 inline void RSC(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2, RN2, neg_RN2;
@@ -1763,7 +1763,7 @@ inline void RSC(arm_isa* ref, int rd, int rn, bool s,
 
 //------------------------------------------------------
 inline void SBC(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2, RN2, neg_shiftop;
@@ -1806,7 +1806,7 @@ inline void SBC(arm_isa* ref, int rd, int rn, bool s,
 
 //------------------------------------------------------
 inline void SMLAL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
-           ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
            ac_reg<unsigned>& ac_pc) {
 
   arm_isa::r64bit_t result, acc;
@@ -1841,7 +1841,7 @@ inline void SMLAL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
 
 //------------------------------------------------------
 inline void SMULL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
-           ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
            ac_reg<unsigned>& ac_pc) {
 
   arm_isa::r64bit_t result;
@@ -1880,7 +1880,7 @@ inline void STC(){
 
 //------------------------------------------------------
 inline void STM(arm_isa* ref, int rlist,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
                 ac_reg<unsigned>& ac_pc, ac_memory& MEM, unsigned r) {
 
   // todo special cases
@@ -1920,7 +1920,7 @@ inline void STM(arm_isa* ref, int rlist,
 
 //------------------------------------------------------
 inline void STR(arm_isa* ref, int rd, int rn,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   dprintf("Instruction: STR\n");
@@ -1937,7 +1937,7 @@ inline void STR(arm_isa* ref, int rd, int rn,
 
 //------------------------------------------------------
 inline void STRB(arm_isa* ref, int rd, int rn,
-          ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   arm_isa::reg_t RD2;
@@ -1956,7 +1956,7 @@ inline void STRB(arm_isa* ref, int rd, int rn,
 
 //------------------------------------------------------
 inline void STRBT(arm_isa* ref, int rd, int rn,
-           ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
            ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   arm_isa::reg_t RD2;
@@ -1975,7 +1975,7 @@ inline void STRBT(arm_isa* ref, int rd, int rn,
 
 //------------------------------------------------------
 inline void STRD(arm_isa* ref, int rd, int rn,
-          ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   dprintf("Instruction: STRD\n");
@@ -2003,7 +2003,7 @@ inline void STRD(arm_isa* ref, int rd, int rn,
 
 //------------------------------------------------------
 inline void STRH(arm_isa* ref, int rd, int rn,
-          ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   int16_t data;
@@ -2028,7 +2028,7 @@ inline void STRH(arm_isa* ref, int rd, int rn,
 
 //------------------------------------------------------
 inline void STRT(arm_isa* ref, int rd, int rn,
-          ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   dprintf("Instruction: STRT\n");
@@ -2045,7 +2045,7 @@ inline void STRT(arm_isa* ref, int rd, int rn,
 
 //------------------------------------------------------
 inline void SUB(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2, RN2, neg_shiftop;
@@ -2085,7 +2085,7 @@ inline void SUB(arm_isa* ref, int rd, int rn, bool s,
 
 //------------------------------------------------------
 inline void SWP(arm_isa* ref, int rd, int rn, int rm,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   arm_isa::reg_t RN2, RM2, rtmp;
@@ -2133,7 +2133,7 @@ inline void SWP(arm_isa* ref, int rd, int rn, int rm,
 
 //------------------------------------------------------
 inline void SWPB(arm_isa* ref, int rd, int rn, int rm,
-          ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
 
   uint32_t tmp;
@@ -2162,7 +2162,7 @@ inline void SWPB(arm_isa* ref, int rd, int rn, int rm,
 
 //------------------------------------------------------
 inline void TEQ(arm_isa *ref, int rn,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RN2, alu_out;
@@ -2183,7 +2183,7 @@ inline void TEQ(arm_isa *ref, int rn,
 
 //------------------------------------------------------
 inline void TST(arm_isa *ref, int rn,
-         ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
          ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RN2, alu_out;
@@ -2204,7 +2204,7 @@ inline void TST(arm_isa *ref, int rn,
 
 //------------------------------------------------------
 inline void UMLAL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
-           ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
            ac_reg<unsigned>& ac_pc) {
 
   arm_isa::r64bit_t result, acc;
@@ -2241,7 +2241,7 @@ inline void UMLAL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
 
 //------------------------------------------------------
 inline void UMULL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
-           ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
            ac_reg<unsigned>& ac_pc) {
 
   
@@ -2275,7 +2275,7 @@ inline void UMULL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
 
 //------------------------------------------------------
 inline void DSMLA(arm_isa* ref, int rd, int rn,
-           ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
            ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2, RN2;
@@ -2296,7 +2296,7 @@ inline void DSMLA(arm_isa* ref, int rd, int rn,
 
 //------------------------------------------------------
 inline void DSMUL(arm_isa* ref, int rd,
-           ac_regbank<31, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
            ac_reg<unsigned>& ac_pc) {
 
   arm_isa::reg_t RD2;
