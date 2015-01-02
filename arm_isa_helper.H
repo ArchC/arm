@@ -86,6 +86,9 @@ reg_t lsm_endaddress;
 reg_t OP1;
 reg_t OP2;
 
+// When rn is in rlist. e.g: push {sp, ...}
+reg_t lsm_oldrn;
+
 
 // Functions used to determine which register to access
 // in case of using other processor modes

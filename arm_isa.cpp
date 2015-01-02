@@ -767,6 +767,11 @@ void ac_behavior( Type_LSM ){
   RN2.entire = RB_read(rn);
   setbits = LSM_CountSetBits(registerList);
 
+  // Special case Rn in Rlist
+  if((w == 1)&&(isBitSet(rlist,rn))) {
+    lsm_oldrn.entire = RB_read(rn);
+  }
+
   if((p == 0)&&(u == 1)) { // increment after
     lsm_startaddress.entire = RN2.entire;
     lsm_endaddress.entire = RN2.entire + (setbits * 4) - 4;
@@ -786,13 +791,6 @@ void ac_behavior( Type_LSM ){
     lsm_startaddress.entire = RN2.entire - (setbits * 4);
     lsm_endaddress.entire = RN2.entire - 4;
     if(w == 1) RN2.entire -= (setbits * 4);
-  }
-
-  // Special case Rn in Rlist
-  if((w == 1)&&(isBitSet(rlist,rn))) {
-    printf("Unpredictable LSM instruction result (Can't writeback to loaded register, Rn in Rlist)\n");
-    ac_annul();
-    return;
   }
 
   RB_write(rn,RN2.entire);
@@ -960,30 +958,34 @@ inline void AND(arm_isa* ref, int rd, int rn, bool s,
 
 //------------------------------------------------------
 inline void B(arm_isa* ref, int h, int offset,
-       ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-       ac_reg<unsigned>& ac_pc) {
+        ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+        ac_reg<unsigned>& ac_pc) {
 
-  uint32_t mem_pos, s_extend;
+    uint32_t mem_pos, s_extend;
 
-  // Note that PC is already incremented by 4, i.e., pointing to the next instruction
+    // Note that PC is already incremented by 4, i.e., pointing to the next instruction
 
-  if(h == 1) { // h? it is really "l"
-    dprintf("Instruction: BL\n");
-    RB_write(LR, RB_read(PC));
-    dprintf("Branch return address: 0x%lX\n", RB_read(LR));
-  } else dprintf("Instruction: B\n");
-  s_extend = arm_isa::SignExtend((int32_t)(offset << 2), 26);
-  mem_pos = (uint32_t)RB_read(PC) + 4 + s_extend;
-  dprintf("Calculated branch destination: 0x%X\n", mem_pos);
-  if((mem_pos < 0)) {
-    fprintf(stderr, "Branch destination out of bounds\n");
-    exit(EXIT_FAILURE);
-    return;
-  } else RB_write(PC, mem_pos);
+    if(h == 1) 
+    { // h? it is really "l"
+        dprintf("Instruction: BL\n");
+        RB_write(LR, RB_read(PC));
+        dprintf("Branch return address: 0x%lX\n", RB_read(LR));
+    } else { 
+        dprintf("Instruction: B\n");
+    }
 
-  //fprintf(stderr, "0x%X\n", (unsigned int)mem_pos);
+    s_extend = arm_isa::SignExtend((int32_t)(offset << 2), 26);
+    mem_pos = (uint32_t)RB_read(PC) + 4 + s_extend;
+    dprintf("Calculated branch destination: 0x%X\n", mem_pos);
+    if((mem_pos < 0)) {
+        fprintf(stderr, "Branch destination out of bounds\n");
+        exit(EXIT_FAILURE);
+        return;
+    } else RB_write(PC, mem_pos);
 
-  ac_pc = RB_read(PC);
+    //fprintf(stderr, "0x%X\n", (unsigned int)mem_pos);
+
+    ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
@@ -1879,43 +1881,48 @@ inline void STC(){
 }
 
 //------------------------------------------------------
-inline void STM(arm_isa* ref, int rlist,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-                ac_reg<unsigned>& ac_pc, ac_memory& MEM, unsigned r) {
+inline void STM(arm_isa* ref, int rn, int rlist,
+        ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
+        ac_reg<unsigned>& ac_pc, ac_memory& MEM, unsigned r) {
 
-  // todo special cases
+    // todo special cases
 
-  int i;
+    int i;
 
-  if (r == 0) { // STM(1) 
-    dprintf("Instruction: STM\n");
-    ref->ls_address = ref->lsm_startaddress;
-    for(i=0;i<16;i++){
-      if(isBitSet(rlist,i)) {
-        MEM.write(ref->ls_address.entire,RB_read(i));
-        ref->ls_address.entire += 4;
-        dprintf(" *  Stored register: 0x%X; value: 0x%X; address: 0x%lX\n",i,RB_read(i),ref->ls_address.entire-4);
-      }
-    }
-  } else { // STM(2)
+    if (r == 0) { // STM(1) 
+        dprintf("Instruction: STM\n");
+        ref->ls_address = ref->lsm_startaddress;
+        for(i=0;i<16;i++){
+            if(isBitSet(rlist,i)) {
+                // rn is in rlist. e.g. push {sp,...}
+                if (i == rn)
+                    MEM.write(ref->ls_address.entire,ref->lsm_oldrn.entire);
+                else 
+                    MEM.write(ref->ls_address.entire,RB_read(i));
+
+                ref->ls_address.entire += 4;
+                dprintf(" *  Stored register: 0x%X; value: 0x%X; address: 0x%lX\n",i,RB_read(i),ref->ls_address.entire-4);
+            }
+        }
+    } else { // STM(2)
 #ifndef FORGIVE_UNPREDICTABLE
-    if (!ref->in_a_privileged_mode()) {
-      fprintf(stderr, "STM(2) unpredictable in user mode");
-      abort();
-    }
+        if (!ref->in_a_privileged_mode()) {
+            fprintf(stderr, "STM(2) unpredictable in user mode");
+            abort();
+        }
 #endif
-    dprintf("Instruction: STM(2)\n");
-    ref->ls_address = ref->lsm_startaddress;
-    for(i=0;i<16;i++){
-      if(isBitSet(rlist,i)) {
-        MEM.write(ref->ls_address.entire,RB .read(i));
-        ref->ls_address.entire += 4;
-        dprintf(" *  Stored register: 0x%X; value: 0x%X; address: 0x%lX\n",i,RB_read(i),ref->ls_address.entire-4);
-      }
+        dprintf("Instruction: STM(2)\n");
+        ref->ls_address = ref->lsm_startaddress;
+        for(i=0;i<16;i++){
+            if(isBitSet(rlist,i)) {
+                MEM.write(ref->ls_address.entire,RB .read(i));
+                ref->ls_address.entire += 4;
+                dprintf(" *  Stored register: 0x%X; value: 0x%X; address: 0x%lX\n",i,RB_read(i),ref->ls_address.entire-4);
+            }
+        }
     }
-  }
 
-  ac_pc = RB_read(PC);
+    ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
@@ -2584,7 +2591,7 @@ void ac_behavior( strh ){ STRH(this, rd, rn, RB, ac_pc, MEM); }
 void ac_behavior( ldm ){ LDM(this, rlist,r, RB, ac_pc, MEM); }
 
 //!Instruction stm behavior method.
-void ac_behavior( stm ){ STM(this, rlist, RB, ac_pc, MEM, r); }
+void ac_behavior( stm ){ STM(this, rn, rlist, RB, ac_pc, MEM, r); }
 
 //!Instruction cdp behavior method.
 void ac_behavior( cdp ){ CDP();}
