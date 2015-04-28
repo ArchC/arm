@@ -1,5 +1,15 @@
-This is the ARMv5e ArchC 2.2 functional model.
+ARMv5e ArchC functional model
+=====
 
+This is the ARMv5e ArchC functional model.
+
+License
+-------
+ - ArchC models are provided under the ArchC license.
+   See [Copying](COPYING) file for details on this license.
+
+acsim
+-----
 This model has the system call emulation functions implemented,
 so it is a good idea to turn on the ABI option.
 
@@ -16,6 +26,9 @@ There are two formats recognized for application <file-path>:
 - hexadecimal text file for ArchC
 
 
+
+Binary utilities
+----------------
 To generate binary utilities use:
 
     acbingen.sh -i<abs-install-path> -a<arch-name> armv5e.ac
@@ -28,25 +41,35 @@ Use "acbingen.sh -h" to get information about the command-line
 options available.
 
 
-For more information visit http://www.archc.org
+Change history
+------------
+
+See [History](HISTORY.md)
 
 
-CHANGELOG:
-==========
+Contributing
+------------
 
-Version 1.0.1:
+See [Contributing](CONTRIBUTING.md)
 
-- Bugfix in BX, RSC and SBC instructions
 
-Version 1.0.0:
+More
+----
 
-- ArchC 2.2 compliant
+Remember that ArchC models and SystemC library must be compiled with
+the same GCC version, otherwise you will get compilation problems.
 
-Version 0.7.0:
+Several documents which further information can be found in the 'doc'
+subdirectory.
 
-- Model passed selected Mediabench and Mibench applications
-- ArchC 2.1 compliant
-- Support for automatic generation of binary tools
-- Support for dynamic linker and loader when reading ELF files
-- Support for GDB
-- Support for compiled simulator and interpreted simulator
+You can find language overview, models, and documentation at
+http://www.archc.org
+
+
+
+Thanks for the interest. We hope you enjoy using ArchC!
+
+The ArchC Team
+Computer Systems Laboratory (LSC)
+IC-UNICAMP
+http://www.lsc.ic.unicamp.br
