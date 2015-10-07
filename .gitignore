@@ -5,6 +5,7 @@ arm.H
 arm.cpp
 *.o
 *.x
+*.a
 arm_arch.H
 arm_arch.cpp
 arm_arch_ref.H
