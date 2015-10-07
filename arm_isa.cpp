@@ -50,8 +50,6 @@ static int processors_started = 0;
 #ifdef DEBUG_MODEL
 #include <stdarg.h>
 
-
-
 static inline int dprintf(const char *format, ...) {
   int ret;
   va_list args;
@@ -74,6 +72,20 @@ inline void dprintf(const char *format, ...) {}
 #else
 #define RB_write RB.write
 #define RB_read RB.read
+#endif
+
+#ifdef SLEEP_AWAKE_MODE
+/*********************************************************************************/
+/* SLEEP / AWAKE mode control                                                    */
+/* INTR_REG may store 1 (AWAKE MODE) or 0 (SLEEP MODE)                           */
+/* if intr_reg == 0, the simulator will be suspended until it receives a         */   
+/* interruption 1                                                                */    
+/*********************************************************************************/
+inline void test_sleep() {
+        if (intr_reg.read() == 0) ac_wait(); 
+    }
+#else
+inline void test_sleep() {}
 #endif
 
 void ac_behavior( begin ) {
@@ -105,6 +117,8 @@ void ac_behavior( begin ) {
 
 //!Generic instruction behavior method.
 void ac_behavior( instruction ) {
+
+   test_sleep();
 
   dprintf("-------------------- PC=%#x -------------------- %lld\n", (uint32_t)ac_pc, ac_instr_counter);
 

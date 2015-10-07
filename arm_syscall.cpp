@@ -35,7 +35,8 @@ void arm_syscall::set_buffer(int argn, unsigned char* buf, unsigned int size) {
   unsigned int addr = RB.read(argn);
 
   for (unsigned int i = 0; i<size; i++, addr++) {
-    MEM.write_byte(addr, buf[i]);
+     MEM.write_byte(addr, buf[i]);
+     //printf("\nMEM[%d]=%d", addr, buf[i]);
   }
 }
 
@@ -79,6 +80,8 @@ void arm_syscall::set_prog_args(int argc, char **argv) {
   char ac_argstr[512];
 
   base = AC_RAM_END - 512;
+
+  
   for (i=0, j=0; i<argc; i++) {
     int len = strlen(argv[i]) + 1;
     ac_argv[i] = base + j;
