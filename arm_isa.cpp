@@ -81,11 +81,9 @@ inline void dprintf(const char *format, ...) {}
 /* if intr_reg == 0, the simulator will be suspended until it receives a         */   
 /* interruption 1                                                                */    
 /*********************************************************************************/
-inline void test_sleep() {
-        if (intr_reg.read() == 0) ac_wait(); 
-    }
+#define test_sleep() { if (intr_reg.read() == 0) ac_wait();  }
 #else
-inline void test_sleep() {}
+#define test_sleep() {}
 #endif
 
 void ac_behavior( begin ) {
