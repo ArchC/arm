@@ -1,4 +1,5 @@
 
+Makefile
 Makefile.archc
 arm.H
 arm.cpp
@@ -16,5 +17,6 @@ arm_parms.H
 arm_syscall.H.tmpl
 main.cpp
 main.cpp.tmpl
-
+arm_ih_bhv_macros.H
+arm_intr_handlers.H
 
