@@ -1,4 +1,12 @@
-## Future
+## 2.4.0
+
+* Revision numbers following the ArchC release
+* Instructions with cycles annotations
+* Two new .ac files to use with MPSoCBench (block and nonblock)
+* arm_isa.cpp using the reserved work DATA_PORT to data request. See the [commit message](https://github.com/ArchC/arm/commit/2eb30a551d11636adaede7db86167b43269d56e8).
+* Interrupt handler support. It is inactive in standalone simulator. 
+
+[Full changelog](https://github.com/ArchC/arm/compare/v2.3.0...v2.4.0)
 
 ## 2.3.0
 * Revision numbers following the ArchC release
