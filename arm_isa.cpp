@@ -2015,7 +2015,7 @@ inline void STRD(arm_isa* ref, int rd, int rn,
   MEM.write(ref->ls_address.entire,RB_read(rd));
   MEM.write(ref->ls_address.entire+4,RB_read(rd+1));
 
-  dprintf(" *  MEM[0x%08X], MEM[0x%08X] <= 0x%08X %08X\n", ref->ls_address.entire, ref->ls_address.entire+4, RB_read(rd+1), RB_read(rd)); 
+  dprintf(" *  MEM[0x%08X], *DATA_PORT[0x%08X] <= 0x%08X %08X\n", ref->ls_address.entire, ref->ls_address.entire+4, RB_read(rd+1), RB_read(rd)); 
 
   ac_pc = RB_read(PC);
 }
@@ -2514,10 +2514,10 @@ void ac_behavior( blx2 ){
 }
 
 //!Instruction swp behavior method.
-void ac_behavior( swp ){ SWP(this, rd, rn, rm, RB, ac_pc, MEM); }
+void ac_behavior( swp ){ SWP(this, rd, rn, rm, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction swpb behavior method.
-void ac_behavior( swpb ){ SWPB(this, rd, rn, rm, RB, ac_pc, MEM); }
+void ac_behavior( swpb ){ SWPB(this, rd, rn, rm, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction mla behavior method.
 void ac_behavior( mla ){ MLA(this, rn, rd, rm, rs, s, RB, ac_pc);}
@@ -2540,70 +2540,70 @@ void ac_behavior( umlal ){ UMLAL(this, rdhi, rdlo, rm, rs, s, RB, ac_pc);}
 void ac_behavior( umull ){ UMULL(this, rdhi, rdlo, rm, rs, s, RB, ac_pc);}
 
 //!Instruction ldr1 behavior method.
-void ac_behavior( ldr1 ){ LDR(this, rd, rn, RB, ac_pc, MEM);  }
+void ac_behavior( ldr1 ){ LDR(this, rd, rn, RB, ac_pc, *DATA_PORT);  }
 
 //!Instruction ldrt1 behavior method.
-void ac_behavior( ldrt1 ){ LDRT(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( ldrt1 ){ LDRT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction ldrb1 behavior method.
-void ac_behavior( ldrb1 ){ LDRB(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( ldrb1 ){ LDRB(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction ldrbt1 behavior method.
-void ac_behavior( ldrbt1 ){ LDRBT(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( ldrbt1 ){ LDRBT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction str1 behavior method.
-void ac_behavior( str1 ){ STR(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( str1 ){ STR(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction strt1 behavior method.
-void ac_behavior( strt1 ){ STRT(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( strt1 ){ STRT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction strb1 behavior method.
-void ac_behavior( strb1 ){ STRB(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( strb1 ){ STRB(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction strbt1 behavior method.
-void ac_behavior( strbt1 ){ STRBT(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( strbt1 ){ STRBT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction ldr2 behavior method.
-void ac_behavior( ldr2 ){ LDR(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( ldr2 ){ LDR(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction ldrt2 behavior method.
-void ac_behavior( ldrt2 ){ LDRT(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( ldrt2 ){ LDRT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction ldrb2 behavior method.
-void ac_behavior( ldrb2 ){ LDRB(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( ldrb2 ){ LDRB(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction ldrbt2 behavior method.
-void ac_behavior( ldrbt2 ){ LDRBT(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( ldrbt2 ){ LDRBT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction str2 behavior method.
-void ac_behavior( str2 ){ STR(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( str2 ){ STR(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction strt2 behavior method.
-void ac_behavior( strt2 ){ STRT(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( strt2 ){ STRT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction strb2 behavior method.
-void ac_behavior( strb2 ){ STRB(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( strb2 ){ STRB(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction strbt2 behavior method.
-void ac_behavior( strbt2 ){ STRBT(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( strbt2 ){ STRBT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction ldrh behavior method.
-void ac_behavior( ldrh ){ LDRH(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( ldrh ){ LDRH(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction ldrsb behavior method.
-void ac_behavior( ldrsb ){ LDRSB(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( ldrsb ){ LDRSB(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction ldrsh behavior method.
-void ac_behavior( ldrsh ){ LDRSH(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( ldrsh ){ LDRSH(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction strh behavior method.
-void ac_behavior( strh ){ STRH(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( strh ){ STRH(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction ldm behavior method.
-void ac_behavior( ldm ){ LDM(this, rlist,r, RB, ac_pc, MEM); }
+void ac_behavior( ldm ){ LDM(this, rlist,r, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction stm behavior method.
-void ac_behavior( stm ){ STM(this, rn, rlist, RB, ac_pc, MEM, r); }
+void ac_behavior( stm ){ STM(this, rn, rlist, RB, ac_pc, *DATA_PORT, r); }
 
 //!Instruction cdp behavior method.
 void ac_behavior( cdp ){ CDP();}
@@ -2770,10 +2770,10 @@ void ac_behavior( msr2 ){
 }
 
 //!Instruction ldrd2 behavior method.
-void ac_behavior( ldrd ){ LDRD(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( ldrd ){ LDRD(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction ldrd2 behavior method.
-void ac_behavior( strd ){ STRD(this, rd, rn, RB, ac_pc, MEM); }
+void ac_behavior( strd ){ STRD(this, rd, rn, RB, ac_pc, *DATA_PORT); }
 
 //!Instruction dsmla behavior method.
 void ac_behavior( dsmla ){ DSMLA(this, drd, drn, RB, ac_pc); }
