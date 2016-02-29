@@ -31,6 +31,13 @@ void arm_syscall::get_buffer(int argn, unsigned char* buf, unsigned int size) {
   }
 }
 
+void arm_syscall::get_buffer_addr(uint32_t addr, unsigned char *buf,
+                                  unsigned int size) {
+  for (unsigned int i = 0; i<size; i++, addr++) {
+    buf[i] = DATA_PORT->read_byte(addr);
+  }
+}
+
 void arm_syscall::set_buffer(int argn, unsigned char* buf, unsigned int size) {
   unsigned int addr = RB.read(argn);
 

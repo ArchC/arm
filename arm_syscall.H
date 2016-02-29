@@ -29,6 +29,7 @@ public:
   virtual ~arm_syscall() {};
 
   void get_buffer(int argn, unsigned char* buf, unsigned int size);
+  void get_buffer_addr(uint32_t addr, unsigned char* buf, unsigned int size);
   void set_buffer(int argn, unsigned char* buf, unsigned int size);
   void set_buffer_noinvert(int argn, unsigned char* buf, unsigned int size);
   int  get_int(int argn);
