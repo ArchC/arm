@@ -80,6 +80,10 @@ void arm_syscall::return_from_syscall() {
   ac_pc = RB.read(14);
 }
 
+bool arm_syscall::is_mmap_anonymous(uint32_t flags) {
+  return flags & 0x20;
+}
+
 void arm_syscall::set_prog_args(int argc, char **argv) {
   int i, j, base;
 
