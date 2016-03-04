@@ -31,10 +31,10 @@ void arm_syscall::get_buffer(int argn, unsigned char* buf, unsigned int size) {
   }
 }
 
-void arm_syscall::get_buffer_addr(uint32_t addr, unsigned char *buf,
-                                  unsigned int size) {
-  for (unsigned int i = 0; i<size; i++, addr++) {
-    buf[i] = DATA_PORT->read_byte(addr);
+void arm_syscall::guest2hostmemcpy(unsigned char *dst, uint32_t src,
+                                   unsigned int size) {
+  for (unsigned int i = 0; i < size; i++) {
+    dst[i] = DATA_PORT->read_byte(src++);
   }
 }
 
@@ -44,6 +44,13 @@ void arm_syscall::set_buffer(int argn, unsigned char* buf, unsigned int size) {
   for (unsigned int i = 0; i<size; i++, addr++) {
      DATA_PORT->write_byte(addr, buf[i]);
      //printf("\nMEM[%d]=%d", addr, buf[i]);
+  }
+}
+
+void arm_syscall::host2guestmemcpy(uint32_t dst, unsigned char *src,
+                                   unsigned int size) {
+  for (unsigned int i = 0; i < size; i++) {
+    DATA_PORT->write_byte(dst++, src[i]);
   }
 }
 
