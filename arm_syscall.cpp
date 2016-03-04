@@ -227,7 +227,8 @@ int *arm_syscall::get_syscall_table() {
     ARM__NR_exit_group,
     ARM__NR_socketcall,
     ARM__NR_gettimeofday,
-    ARM__NR_settimeofday
+    ARM__NR_settimeofday,
+    666  /* clock_gettime = unavailable */
   };
   return syscall_table;
 }
