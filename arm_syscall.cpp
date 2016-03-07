@@ -31,12 +31,26 @@ void arm_syscall::get_buffer(int argn, unsigned char* buf, unsigned int size) {
   }
 }
 
+void arm_syscall::guest2hostmemcpy(unsigned char *dst, uint32_t src,
+                                   unsigned int size) {
+  for (unsigned int i = 0; i < size; i++) {
+    dst[i] = DATA_PORT->read_byte(src++);
+  }
+}
+
 void arm_syscall::set_buffer(int argn, unsigned char* buf, unsigned int size) {
   unsigned int addr = RB.read(argn);
 
   for (unsigned int i = 0; i<size; i++, addr++) {
      DATA_PORT->write_byte(addr, buf[i]);
      //printf("\nMEM[%d]=%d", addr, buf[i]);
+  }
+}
+
+void arm_syscall::host2guestmemcpy(uint32_t dst, unsigned char *src,
+                                   unsigned int size) {
+  for (unsigned int i = 0; i < size; i++) {
+    DATA_PORT->write_byte(dst++, src[i]);
   }
 }
 
@@ -71,6 +85,10 @@ void arm_syscall::set_int(int argn, int val) {
 
 void arm_syscall::return_from_syscall() {
   ac_pc = RB.read(14);
+}
+
+bool arm_syscall::is_mmap_anonymous(uint32_t flags) {
+  return flags & 0x20;
 }
 
 void arm_syscall::set_prog_args(int argc, char **argv) {
@@ -209,7 +227,8 @@ int *arm_syscall::get_syscall_table() {
     ARM__NR_exit_group,
     ARM__NR_socketcall,
     ARM__NR_gettimeofday,
-    ARM__NR_settimeofday
+    ARM__NR_settimeofday,
+    666  /* clock_gettime = unavailable */
   };
   return syscall_table;
 }
