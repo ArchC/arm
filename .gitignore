@@ -16,6 +16,7 @@ arm_isa.cpp.tmpl
 arm_isa_init.cpp
 arm_parms.H
 arm_syscall.H.tmpl
+arm_syscall.cpp.tmpl
 main.cpp
 main.cpp.tmpl
 arm_ih_bhv_macros.H
