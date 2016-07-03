@@ -989,11 +989,7 @@ inline void B(arm_isa* ref, int h, int offset,
     s_extend = arm_isa::SignExtend((int32_t)(offset << 2), 26);
     mem_pos = (uint32_t)RB_read(PC) + 4 + s_extend;
     dprintf("Calculated branch destination: 0x%X\n", mem_pos);
-    if((mem_pos < 0)) {
-        fprintf(stderr, "Branch destination out of bounds\n");
-        exit(EXIT_FAILURE);
-        return;
-    } else RB_write(PC, mem_pos);
+    RB_write(PC, mem_pos);
 
     //fprintf(stderr, "0x%X\n", (unsigned int)mem_pos);
 
