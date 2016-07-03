@@ -228,6 +228,7 @@ unsigned bypass_read(unsigned address) {
       return RB.read(address);
     break;
   }
+  return ~((unsigned)0);
 }
 
 //! User defined macros to access a single bit
