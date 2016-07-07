@@ -545,3 +545,59 @@ void service_interrupt(unsigned excep_type) {
 	
   writeCPSR(cpsr);
 }
+
+// Support functions used in arm_isa.cpp to avoid code repetition
+
+void ADD(int rd, int rn, bool s);
+void ADC(int rd, int rn, bool s);
+void AND(int rd, int rn, bool s);
+void B(int h, int offset);
+void BX(int rm);
+void BIC(int rd, int rn, bool s);
+void CDP();
+void CLZ(int rd, int rm);
+void CMN(int rn);
+void CMP(int rn);
+void EOR(int rd, int rn, bool s);
+void LDC();
+void LDM(int rlist, bool r);
+void LDR(int rd, int rn);
+void LDRB(int rd, int rn);
+void LDRBT(int rd, int rn);
+void LDRD(int rd, int rn);
+void LDRH(int rd, int rn);
+void LDRSB(int rd, int rn);
+void LDRSH(int rd, int rn);
+void LDRT(int rd, int rn);
+void MCR();
+void MLA(int rd, int rn, int rm, int rs, bool s);
+void MOV(int rd, bool s);
+void MRC();
+void MRS(int rd, bool r, int zero3, int subop2, int func2, int subop1, int rm,
+         int field);
+void MUL(int rd, int rm, int rs, bool s);
+void MVN(int rd, bool s);
+void ORR(int rd, int rn, bool s);
+void RSB(int rd, int rn, bool s);
+void RSC(int rd, int rn, bool s);
+void SBC(int rd, int rn, bool s);
+void SMLAL(int rdhi, int rdlo, int rm, int rs, bool s);
+void SMULL(int rdhi, int rdlo, int rm, int rs, bool s);
+void STC();
+void STM(int rn, int rlist, unsigned r);
+void STR(int rd, int rn);
+void STRB(int rd, int rn);
+void STRBT(int rd, int rn);
+void STRD(int rd, int rn);
+void STRH(int rd, int rn);
+void STRT(int rd, int rn);
+void SUB(int rd, int rn, bool s);
+void SWP(int rd, int rn, int rm);
+void SWPB(int rd, int rn, int rm);
+void TEQ(int rn);
+void TST(int rn);
+void UMLAL(int rdhi, int rdlo, int rm, int rs, bool s);
+void UMULL(int rdhi, int rdlo, int rm, int rs, bool s);
+void DSMLA(int rd, int rn);
+void DSMUL(int rd);
+
