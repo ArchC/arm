@@ -861,9 +861,7 @@ void ac_behavior( Type_DSPSM ){
 //! Behavior Methods
 
 //------------------------------------------------------
-inline void ADC(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-		ac_reg<unsigned>& ac_pc) {
+void arm_isa::ADC(int rd, int rn, bool s) {
 
   arm_isa::reg_t RD2, RN2;
   arm_isa::r64bit_t soma;
@@ -871,9 +869,9 @@ inline void ADC(arm_isa* ref, int rd, int rn, bool s,
   dprintf("Instruction: ADC\n");
   RN2.entire = RB_read(rn);
   if(rn == PC) RN2.entire += 4;
-  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n  Carry=%d\n", RN2.entire,ref->dpi_shiftop.entire,ref->flags.C);
-  soma.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)ref->dpi_shiftop.entire;
-  if (ref->flags.C) soma.hilo++;
+  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n  Carry=%d\n", RN2.entire,dpi_shiftop.entire,flags.C);
+  soma.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)dpi_shiftop.entire;
+  if (flags.C) soma.hilo++;
   RD2.entire = soma.reg[0];
   RB_write(rd, RD2.entire);
   if ((s == 1)&&(rd == PC)) {
@@ -883,22 +881,20 @@ inline void ADC(arm_isa* ref, int rd, int rn, bool s,
 #endif
   } else {
     if (s == 1) {
-      ref->flags.N = getBit(RD2.entire,31);
-      ref->flags.Z = ((RD2.entire == 0) ? true : false);
-      ref->flags.C = ((soma.reg[1] != 0) ? true : false);
-      ref->flags.V = (((getBit(RN2.entire,31) && getBit(ref->dpi_shiftop.entire,31) && (!getBit(RD2.entire,31))) ||
-		  ((!getBit(RN2.entire,31)) && (!getBit(ref->dpi_shiftop.entire,31)) && getBit(RD2.entire,31))) ? true : false);
+      flags.N = getBit(RD2.entire,31);
+      flags.Z = ((RD2.entire == 0) ? true : false);
+      flags.C = ((soma.reg[1] != 0) ? true : false);
+      flags.V = (((getBit(RN2.entire,31) && getBit(dpi_shiftop.entire,31) && (!getBit(RD2.entire,31))) ||
+		  ((!getBit(RN2.entire,31)) && (!getBit(dpi_shiftop.entire,31)) && getBit(RD2.entire,31))) ? true : false);
     }
   }
   dprintf(" *  R%d <= 0x%08X (%d)\n", rd, RD2.entire, RD2.entire); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n", ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n", flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void ADD(arm_isa* ref, int rd, int rn, bool s,
-    ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-    ac_reg<unsigned>& ac_pc) {
+void arm_isa::ADD(int rd, int rn, bool s) {
 
   arm_isa::reg_t RD2, RN2;
   arm_isa::r64bit_t soma;
@@ -906,72 +902,68 @@ inline void ADD(arm_isa* ref, int rd, int rn, bool s,
   dprintf("Instruction: ADD\n");
   RN2.entire = RB_read(rn);
   if(rn == PC) RN2.entire += 4;
-  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
-  soma.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)ref->dpi_shiftop.entire;
+  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,dpi_shiftop.entire);
+  soma.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)dpi_shiftop.entire;
   RD2.entire = soma.reg[0];
   RB_write(rd, RD2.entire);
   if ((s == 1)&&(rd == PC)) {
 #ifndef FORGIVE_UNPREDICTABLE
-    if (ref->arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
-        ref->arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
+    if (arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
+        arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
       printf("Unpredictable ADD instruction result\n");
       return;
     }
-    ref->SPSRtoCPSR();
+    SPSRtoCPSR();
 #endif
   } else {
     if (s == 1) {
-      ref->flags.N = getBit(RD2.entire,31);
-      ref->flags.Z = ((RD2.entire == 0) ? true : false);
-      ref->flags.C = ((soma.reg[1] != 0) ? true : false);
-      ref->flags.V = (((getBit(RN2.entire,31) && getBit(ref->dpi_shiftop.entire,31) && (!getBit(RD2.entire,31))) ||
-		  ((!getBit(RN2.entire,31)) && (!getBit(ref->dpi_shiftop.entire,31)) && getBit(RD2.entire,31))) ? true : false);
+      flags.N = getBit(RD2.entire,31);
+      flags.Z = ((RD2.entire == 0) ? true : false);
+      flags.C = ((soma.reg[1] != 0) ? true : false);
+      flags.V = (((getBit(RN2.entire,31) && getBit(dpi_shiftop.entire,31) && (!getBit(RD2.entire,31))) ||
+		  ((!getBit(RN2.entire,31)) && (!getBit(dpi_shiftop.entire,31)) && getBit(RD2.entire,31))) ? true : false);
     }
   }
   dprintf(" *  R%d <= 0x%08X (%d)\n", rd, RD2.entire, RD2.entire); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n", ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n", flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void AND(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::AND(int rd, int rn, bool s) {
 
   arm_isa::reg_t RD2, RN2;
   
   dprintf("Instruction: AND\n");
   RN2.entire = RB_read(rn);
-  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
-  RD2.entire = RN2.entire & ref->dpi_shiftop.entire;
+  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,dpi_shiftop.entire);
+  RD2.entire = RN2.entire & dpi_shiftop.entire;
   RB_write(rd, RD2.entire);
 
   if ((s == 1)&&(rd == PC)) {
 #ifndef FORGIVE_UNPREDICTABLE
-    if (ref->arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
-        ref->arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
+    if (arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
+        arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
       printf("Unpredictable AND instruction result\n");
       return;
     }
-    ref->SPSRtoCPSR();
+    SPSRtoCPSR();
 #endif
   } else {
     if (s == 1) {
-      ref->flags.N = getBit(RD2.entire, 31);
-      ref->flags.Z = ((RD2.entire == 0) ? true : false);
-      ref->flags.C = ref->dpi_shiftopcarry;
-      // nothing happens with ref->flags.V 
+      flags.N = getBit(RD2.entire, 31);
+      flags.Z = ((RD2.entire == 0) ? true : false);
+      flags.C = dpi_shiftopcarry;
+      // nothing happens with flags.V 
     }
   }   
   dprintf(" *  R%d <= 0x%08X (%d)\n", rd, RD2.entire, RD2.entire); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n", ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n", flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void B(arm_isa* ref, int h, int offset,
-        ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-        ac_reg<unsigned>& ac_pc) {
+void arm_isa::B(int h, int offset) {
 
     uint32_t mem_pos, s_extend;
 
@@ -1001,9 +993,7 @@ inline void B(arm_isa* ref, int h, int offset,
 }
 
 //------------------------------------------------------
-inline void BX(arm_isa *ref, int rm,
-        ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-        ac_reg<unsigned>& ac_pc) {
+void arm_isa::BX(int rm) {
 
   dprintf("Instruction: BX\n");
 
@@ -1012,57 +1002,53 @@ inline void BX(arm_isa *ref, int rm,
 //    return;
   } 
 
-  ref->flags.T = isBitSet(rm, 0);
+  flags.T = isBitSet(rm, 0);
   ac_pc = RB_read(rm) & 0xFFFFFFFE;
 
   //dprintf("Pc = 0x%X",ac_pc);
 }
 
 //------------------------------------------------------
-inline void BIC(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::BIC(int rd, int rn, bool s) {
 
   arm_isa::reg_t RD2, RN2;
   
   dprintf("Instruction: BIC\n");
   RN2.entire = RB_read(rn);
-  RD2.entire = RN2.entire & ~ref->dpi_shiftop.entire;
-  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
+  RD2.entire = RN2.entire & ~dpi_shiftop.entire;
+  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,dpi_shiftop.entire);
   RB_write(rd,RD2.entire);
 
   if ((s == 1)&&(rd == PC)) {
 #ifndef FORGIVE_UNPREDICTABLE
-    if (ref->arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
-        ref->arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
+    if (arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
+        arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
       printf("Unpredictable BIC instruction result\n");
       return;
     }
-    ref->SPSRtoCPSR();
+    SPSRtoCPSR();
 #endif
   } else {
     if (s == 1) {
-      ref->flags.N = getBit(RD2.entire,31);
-      ref->flags.Z = ((RD2.entire == 0) ? true : false);
-      ref->flags.C = ref->dpi_shiftopcarry;
-      // nothing happens with ref->flags.V 
+      flags.N = getBit(RD2.entire,31);
+      flags.Z = ((RD2.entire == 0) ? true : false);
+      flags.C = dpi_shiftopcarry;
+      // nothing happens with flags.V 
     }
   }   
   dprintf(" *  R%d <= 0x%08X (%d)\n", rd, RD2.entire, RD2.entire); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n", ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n", flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void CDP(){
+void arm_isa::CDP(){
   dprintf("Instruction: CDP\n");
   fprintf(stderr,"Warning: CDP is not implemented in this model.\n");
 }
 
 //------------------------------------------------------
-inline void CLZ(arm_isa* ref, int rd, int rm,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::CLZ(int rd, int rm) {
 
   arm_isa::reg_t RD2, RM2;
   int i;
@@ -1072,12 +1058,12 @@ inline void CLZ(arm_isa* ref, int rd, int rm,
   // Special cases
 #ifndef FORGIVE_UNPREDICTABLE
   if((rd == PC)||(rm == PC)) {
-    if (ref->arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
-        ref->arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
+    if (arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
+        arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
       printf("Unpredictable CLZ instruction result\n");
       return;
     }
-    ref->SPSRtoCPSR();
+    SPSRtoCPSR();
   }
 #endif
 
@@ -1097,99 +1083,91 @@ inline void CLZ(arm_isa* ref, int rd, int rm,
 }
 
 //------------------------------------------------------
-inline void CMN(arm_isa *ref, int rn,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::CMN(int rn) {
 
   arm_isa::reg_t RN2, alu_out;
   arm_isa::r64bit_t soma;
 
   dprintf("Instruction: CMN\n");
   RN2.entire = RB_read(rn);
-  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
-  soma.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)ref->dpi_shiftop.entire;
+  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,dpi_shiftop.entire);
+  soma.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)dpi_shiftop.entire;
   alu_out.entire = soma.reg[0];
 
-  ref->flags.N = getBit(alu_out.entire,31);
-  ref->flags.Z = ((alu_out.entire == 0) ? true : false);
-  ref->flags.C = ((soma.reg[1] != 0) ? true : false);
-  ref->flags.V = (((getBit(RN2.entire,31) && getBit(ref->dpi_shiftop.entire,31) && (!getBit(alu_out.entire,31))) ||
-	      ((!getBit(RN2.entire,31)) && (!getBit(ref->dpi_shiftop.entire,31)) && getBit(alu_out.entire,31))) ? true : false);
+  flags.N = getBit(alu_out.entire,31);
+  flags.Z = ((alu_out.entire == 0) ? true : false);
+  flags.C = ((soma.reg[1] != 0) ? true : false);
+  flags.V = (((getBit(RN2.entire,31) && getBit(dpi_shiftop.entire,31) && (!getBit(alu_out.entire,31))) ||
+	      ((!getBit(RN2.entire,31)) && (!getBit(dpi_shiftop.entire,31)) && getBit(alu_out.entire,31))) ? true : false);
 
-  dprintf("Results: 0x%lX\n *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n", alu_out.entire,ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);    
+  dprintf("Results: 0x%lX\n *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n", alu_out.entire,flags.N,flags.Z,flags.C,flags.V);    
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void CMP(arm_isa *ref, int rn,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::CMP(int rn) {
 
   arm_isa::reg_t RN2, alu_out, neg_shiftop;
   arm_isa::r64bit_t result;
 
   dprintf("Instruction: CMP\n");
   RN2.entire = RB_read(rn);
-  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
-  neg_shiftop.entire = - ref->dpi_shiftop.entire;
+  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,dpi_shiftop.entire);
+  neg_shiftop.entire = - dpi_shiftop.entire;
   result.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)neg_shiftop.entire;
   alu_out.entire = result.reg[0];
 
-  ref->flags.N = getBit(alu_out.entire,31);
-  ref->flags.Z = ((alu_out.entire == 0) ? true : false);
-  ref->flags.C = !(((uint32_t) ref->dpi_shiftop.entire > (uint32_t) RN2.entire) ? true : false);
-  ref->flags.V = (((getBit(RN2.entire,31) && getBit(neg_shiftop.entire,31) && (!getBit(alu_out.entire,31))) ||
+  flags.N = getBit(alu_out.entire,31);
+  flags.Z = ((alu_out.entire == 0) ? true : false);
+  flags.C = !(((uint32_t) dpi_shiftop.entire > (uint32_t) RN2.entire) ? true : false);
+  flags.V = (((getBit(RN2.entire,31) && getBit(neg_shiftop.entire,31) && (!getBit(alu_out.entire,31))) ||
 	      ((!getBit(RN2.entire,31)) && (!getBit(neg_shiftop.entire,31)) && getBit(alu_out.entire,31))) ? true : false);
   
-  dprintf("Results: 0x%lX\n *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n", alu_out.entire,ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);     
+  dprintf("Results: 0x%lX\n *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n", alu_out.entire,flags.N,flags.Z,flags.C,flags.V);     
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void EOR(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::EOR(int rd, int rn, bool s) {
 
   arm_isa::reg_t RD2, RN2;
   
   dprintf("Instruction: EOR\n");
   RN2.entire = RB_read(rn);
-  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
-  RD2.entire = RN2.entire ^ ref->dpi_shiftop.entire;
+  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,dpi_shiftop.entire);
+  RD2.entire = RN2.entire ^ dpi_shiftop.entire;
   RB_write(rd, RD2.entire);
 
   if ((s == 1)&&(rd == PC)) {
 #ifndef FORGIVE_UNPREDICTABLE
-    if (ref->arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
-        ref->arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
+    if (arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
+        arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
       printf("Unpredictable EOR instruction result\n");
       return;
     }
-    ref->SPSRtoCPSR();
+    SPSRtoCPSR();
 #endif
   } else {
     if (s == 1) {
-      ref->flags.N = getBit(RD2.entire, 31);
-      ref->flags.Z = ((RD2.entire == 0) ? true : false);
-      ref->flags.C = ref->dpi_shiftopcarry;
-      // nothing happens with ref->flags.V 
+      flags.N = getBit(RD2.entire, 31);
+      flags.Z = ((RD2.entire == 0) ? true : false);
+      flags.C = dpi_shiftopcarry;
+      // nothing happens with flags.V 
     }
   }   
   dprintf(" *  R%d <= 0x%08X (%d)\n", rd, RD2.entire, RD2.entire); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V); 
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V); 
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void LDC(){
+void arm_isa::LDC(){
   dprintf("Instruction: LDC\n");
   fprintf(stderr,"Warning: LDC instruction is not implemented in this model.\n");
 }
 
 //------------------------------------------------------
-inline void LDM(arm_isa *ref, int rlist, bool r,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::LDM(int rlist, bool r) {
 
   // todo special cases
 
@@ -1198,47 +1176,47 @@ inline void LDM(arm_isa *ref, int rlist, bool r,
 
   if (r == 0) { // LDM(1)
     dprintf("Instruction: LDM\n");
-    ref->ls_address = ref->lsm_startaddress;
-    dprintf("Initial address: 0x%lX\n",ref->ls_address.entire);
+    ls_address = lsm_startaddress;
+    dprintf("Initial address: 0x%lX\n",ls_address.entire);
     for(i=0;i<15;i++){
       if(isBitSet(rlist,i)) {
-        RB_write(i,MEM.read(ref->ls_address.entire));
-        ref->ls_address.entire += 4;
-        dprintf(" *  Loaded register: 0x%X; Value: 0x%X; Next address: 0x%lX\n", i,RB_read(i),ref->ls_address.entire-4);
+        RB_write(i,MEM.read(ls_address.entire));
+        ls_address.entire += 4;
+        dprintf(" *  Loaded register: 0x%X; Value: 0x%X; Next address: 0x%lX\n", i,RB_read(i),ls_address.entire-4);
       }
     }
     
     if((isBitSet(rlist,PC))) { // LDM(1)
-      value = MEM.read(ref->ls_address.entire);
+      value = MEM.read(ls_address.entire);
       RB_write(PC,value & 0xFFFFFFFE);
-      ref->ls_address.entire += 4;
-      dprintf(" *  Loaded register: PC; Next address: 0x%lX\n", ref->ls_address.entire);
+      ls_address.entire += 4;
+      dprintf(" *  Loaded register: PC; Next address: 0x%lX\n", ls_address.entire);
     }
   } else {    
     // LDM(2) similar to LDM(1), except for the above "if"
 #ifndef FORGIVE_UNPREDICTABLE
-    if (!ref->in_a_privileged_mode()) {
+    if (!in_a_privileged_mode()) {
       fprintf (stderr, "Unpredictable behavior for LDM2/LDM3\n");
       abort();
     }
 #endif
     dprintf("Instruction: LDM\n");
-    ref->ls_address = ref->lsm_startaddress;
-    dprintf("Initial address: 0x%lX\n",ref->ls_address.entire);
+    ls_address = lsm_startaddress;
+    dprintf("Initial address: 0x%lX\n",ls_address.entire);
     for(i=0;i<15;i++){
       if(isBitSet(rlist,i)) {
-        RB.write(i,MEM.read(ref->ls_address.entire));
-        ref->ls_address.entire += 4;
-        dprintf(" *  Loaded register: 0x%X; Value: 0x%X; Next address: 0x%lX\n", i,RB_read(i),ref->ls_address.entire);
+        RB.write(i,MEM.read(ls_address.entire));
+        ls_address.entire += 4;
+        dprintf(" *  Loaded register: 0x%X; Value: 0x%X; Next address: 0x%lX\n", i,RB_read(i),ls_address.entire);
       }
     }
     if((isBitSet(rlist,PC))) { // LDM(3)
-      value = MEM.read(ref->ls_address.entire);
+      value = MEM.read(ls_address.entire);
       RB.write(PC,value & 0xFFFFFFFE);
-      ref->ls_address.entire += 4;
-      dprintf(" *  Loaded register: PC; Next address: 0x%lX\n", ref->ls_address.entire);
+      ls_address.entire += 4;
+      dprintf(" *  Loaded register: PC; Next address: 0x%lX\n", ls_address.entire);
 #ifndef FORGIVE_UNPREDICTABLE
-      ref->SPSRtoCPSR();
+      SPSRtoCPSR();
 #endif
     }
   }
@@ -1247,42 +1225,40 @@ inline void LDM(arm_isa *ref, int rlist, bool r,
 }
 
 //------------------------------------------------------
-inline void LDR(arm_isa* ref, int rd, int rn,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::LDR(int rd, int rn) {
 
   int32_t value;
   arm_isa::reg_t tmp;
   int addr10;
 
   dprintf("Instruction: LDR\n");
-  addr10 = (uint32_t) ref->ls_address.entire & 0x00000003;
-  ref->ls_address.entire &= 0xFFFFFFFC;
+  addr10 = (uint32_t) ls_address.entire & 0x00000003;
+  ls_address.entire &= 0xFFFFFFFC;
 
   // Special cases
   // TODO: Verify coprocessor cases (alignment)
-  dprintf("Reading memory position 0x%08X\n", ref->ls_address.entire);
+  dprintf("Reading memory position 0x%08X\n", ls_address.entire);
       
   switch(addr10) {
   case 0:
-    value = MEM.read(ref->ls_address.entire);
+    value = MEM.read(ls_address.entire);
     break;
   case 1:
-    tmp.entire = MEM.read(ref->ls_address.entire);
+    tmp.entire = MEM.read(ls_address.entire);
     value = (arm_isa::RotateRight(8,tmp)).entire;
     break;
   case 2:
-    tmp.entire = MEM.read(ref->ls_address.entire);
+    tmp.entire = MEM.read(ls_address.entire);
     value = (arm_isa::RotateRight(16,tmp)).entire;
     break;
   default:
-    tmp.entire = MEM.read(ref->ls_address.entire);
+    tmp.entire = MEM.read(ls_address.entire);
     value = (arm_isa::RotateRight(24,tmp)).entire;
   }
     
   if(rd == PC) {
     RB_write(PC,(value & 0xFFFFFFFE));
-    ref->flags.T = isBitSet(value,0);
+    flags.T = isBitSet(value,0);
     dprintf(" *  PC <= 0x%08X\n", value & 0xFFFFFFFE);
   }
   else 
@@ -1295,16 +1271,14 @@ inline void LDR(arm_isa* ref, int rd, int rn,
 }
 
 //------------------------------------------------------
-inline void LDRB(arm_isa* ref, int rd, int rn,
-          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::LDRB(int rd, int rn) {
   uint8_t value;
 
   dprintf("Instruction: LDRB\n");
 
   // Special cases
-  dprintf("Reading memory position 0x%08X\n", ref->ls_address.entire);
-  value = (uint8_t) MEM.read_byte(ref->ls_address.entire);
+  dprintf("Reading memory position 0x%08X\n", ls_address.entire);
+  value = (uint8_t) MEM.read_byte(ls_address.entire);
   
   dprintf("Byte: 0x%X\n", value);
   RB_write(rd, ((uint32_t)value));
@@ -1315,17 +1289,15 @@ inline void LDRB(arm_isa* ref, int rd, int rn,
 }
 
 //------------------------------------------------------
-inline void LDRBT(arm_isa* ref, int rd, int rn,
-           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::LDRBT(int rd, int rn) {
 
   uint8_t value;
 
   dprintf("Instruction: LDRBT\n");
 
   // Special cases
-  dprintf("Reading memory position 0x%08X\n", ref->ls_address.entire);
-  value = (uint8_t) MEM.read_byte(ref->ls_address.entire);
+  dprintf("Reading memory position 0x%08X\n", ls_address.entire);
+  value = (uint8_t) MEM.read_byte(ls_address.entire);
   
   dprintf("Byte: 0x%X\n", (uint32_t) value);
   RB_write(rd, (uint32_t) value);
@@ -1336,15 +1308,13 @@ inline void LDRBT(arm_isa* ref, int rd, int rn,
 }
 
 //------------------------------------------------------
-inline void LDRD(arm_isa* ref, int rd, int rn,
-          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::LDRD(int rd, int rn) {
   uint32_t value1, value2;
 
   dprintf("Instruction: LDRD\n");
-  dprintf("Reading memory position 0x%08X\n", ref->ls_address.entire);
-  value1 = MEM.read_byte(ref->ls_address.entire);
-  value2 = MEM.read_byte(ref->ls_address.entire+4);
+  dprintf("Reading memory position 0x%08X\n", ls_address.entire);
+  value1 = MEM.read_byte(ls_address.entire);
+  value2 = MEM.read_byte(ls_address.entire+4);
 
   // Special cases
   // Registrador destino deve ser par
@@ -1353,7 +1323,7 @@ inline void LDRD(arm_isa* ref, int rd, int rn,
     return;
   }
   // Verificar alinhamento do doubleword
-  if((rd == LR)||(ref->ls_address.entire & 0x00000007)){
+  if((rd == LR)||(ls_address.entire & 0x00000007)){
     printf("Unpredictable LDRD instruction result (Address is not doubleword aligned) @ 0x%08X\n", RB_read(PC)-4);
     return;
   }
@@ -1367,21 +1337,19 @@ inline void LDRD(arm_isa* ref, int rd, int rn,
   ac_pc = RB_read(PC);
 }
 //------------------------------------------------------
-inline void LDRH(arm_isa* ref, int rd, int rn,
-          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::LDRH(int rd, int rn) {
   uint32_t value;
 
   dprintf("Instruction: LDRH\n");
-  dprintf("Reading memory position 0x%08X\n", ref->ls_address.entire);
+  dprintf("Reading memory position 0x%08X\n", ls_address.entire);
   // Special cases
   // verify coprocessor alignment
   // verify halfword alignment
-  if(isBitSet(ref->ls_address.entire,0)){
+  if(isBitSet(ls_address.entire,0)){
     printf("Unpredictable LDRH instruction result (Address is not Halfword Aligned)\n");
     return;
   }
-  value = MEM.read(ref->ls_address.entire);
+  value = MEM.read(ls_address.entire);
   value &= 0xFFFF; /* Zero extends halfword value 
 		      BUG: Model must be little endian in order to the code work  */
 
@@ -1393,17 +1361,15 @@ inline void LDRH(arm_isa* ref, int rd, int rn,
 }
 
 //------------------------------------------------------
-inline void LDRSB(arm_isa* ref, int rd, int rn,
-           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::LDRSB(int rd, int rn) {
 
   uint32_t data;
 
   dprintf("Instruction: LDRSB\n");
     
   // Special cases
-  dprintf("Reading memory position 0x%08X\n", ref->ls_address.entire);  
-  data = MEM.read_byte(ref->ls_address.entire);
+  dprintf("Reading memory position 0x%08X\n", ls_address.entire);  
+  data = MEM.read_byte(ls_address.entire);
   data = arm_isa::SignExtend(data, 8);
 
   RB_write(rd, data);
@@ -1414,23 +1380,21 @@ inline void LDRSB(arm_isa* ref, int rd, int rn,
 }
 
 //------------------------------------------------------
-inline void LDRSH(arm_isa* ref, int rd, int rn,
-           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-           ac_reg<unsigned>& ac_pc, ac_memory& MEM){
+void arm_isa::LDRSH(int rd, int rn){
 
   uint32_t data;
 
   dprintf("Instruction: LDRSH\n");
-  dprintf("Reading memory position 0x%08X\n", ref->ls_address.entire);    
+  dprintf("Reading memory position 0x%08X\n", ls_address.entire);    
   // Special cases
   // verificar alinhamento do halfword
-  if(isBitSet(ref->ls_address.entire, 0)) {
+  if(isBitSet(ls_address.entire, 0)) {
     printf("Unpredictable LDRSH instruction result (Address is not halfword aligned)\n");
     return;
   }
   // Verify coprocessor alignment
 
-  data = MEM.read(ref->ls_address.entire);
+  data = MEM.read(ls_address.entire);
   data &= 0xFFFF; /* Extracts halfword 
 		     BUG: Model must be little endian */
   data = arm_isa::SignExtend(data,16);
@@ -1442,9 +1406,7 @@ inline void LDRSH(arm_isa* ref, int rd, int rn,
 }
 
 //------------------------------------------------------
-inline void LDRT(arm_isa* ref, int rd, int rn,
-          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::LDRT(int rd, int rn) {
 
   int addr10;
   arm_isa::reg_t tmp;
@@ -1452,30 +1414,30 @@ inline void LDRT(arm_isa* ref, int rd, int rn,
 
   dprintf("Instruction: LDRT\n");
 
-  addr10 = (int)ref->ls_address.entire & 0x00000003;
-  ref->ls_address.entire &= 0xFFFFFFFC;
-  dprintf("Reading memory position 0x%08X\n", ref->ls_address.entire);
+  addr10 = (int)ls_address.entire & 0x00000003;
+  ls_address.entire &= 0xFFFFFFFC;
+  dprintf("Reading memory position 0x%08X\n", ls_address.entire);
     
   // Special cases
   // Verify coprocessor alignment
     
   switch(addr10) {
   case 0:
-    value = MEM.read(ref->ls_address.entire);
+    value = MEM.read(ls_address.entire);
     RB_write(rd, value);
     break;
   case 1:
-    tmp.entire = MEM.read(ref->ls_address.entire);
+    tmp.entire = MEM.read(ls_address.entire);
     value = arm_isa::RotateRight(8,tmp).entire;
     RB_write(rd, value);
     break;
   case 2:
-    tmp.entire = MEM.read(ref->ls_address.entire);
+    tmp.entire = MEM.read(ls_address.entire);
     value = arm_isa::RotateRight(16,tmp).entire;
     RB_write(rd, value);
     break;
   default:
-    tmp.entire = MEM.read(ref->ls_address.entire);
+    tmp.entire = MEM.read(ls_address.entire);
     value = arm_isa::RotateRight(24, tmp).entire;
     RB_write(rd, value);
   }
@@ -1486,15 +1448,13 @@ inline void LDRT(arm_isa* ref, int rd, int rn,
 }
 
 //------------------------------------------------------
-inline void MCR(){
+void arm_isa::MCR(){
   dprintf("Instruction: MCR\n");
   fprintf(stderr, "Warning: MCR instruction is not implemented in this model.\n");
 }
 
 //------------------------------------------------------
-inline void MLA(arm_isa* ref, int rd, int rn, int rm, int rs, bool s,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::MLA(int rd, int rn, int rm, int rs, bool s) {
 
   arm_isa::reg_t RD2, RN2, RM2, RS2;
   RN2.entire = RB_read(rn);
@@ -1512,57 +1472,53 @@ inline void MLA(arm_isa* ref, int rd, int rn, int rm, int rs, bool s,
 
   RD2.entire = RM2.entire * RS2.entire + RN2.entire;
   if(s == 1) {
-    ref->flags.N = getBit(RD2.entire,31);
-    ref->flags.Z = ((RD2.entire == 0) ? true : false);
-    // nothing happens with ref->flags.C and ref->flags.V
+    flags.N = getBit(RD2.entire,31);
+    flags.Z = ((RD2.entire == 0) ? true : false);
+    // nothing happens with flags.C and flags.V
   }
   RB_write(rd,RD2.entire);
 
   dprintf(" *  R%d <= 0x%08X (%d)\n", rd, RD2.entire, RD2.entire); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void MOV(arm_isa* ref, int rd, bool s,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::MOV(int rd, bool s) {
   
   dprintf("Instruction: MOV\n");
-  RB_write(rd, ref->dpi_shiftop.entire);
+  RB_write(rd, dpi_shiftop.entire);
 
   if ((s == 1)&&(rd == PC)) {
 #ifndef FORGIVE_UNPREDICTABLE
-    if (ref->arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
-        ref->arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
+    if (arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
+        arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
       printf("Unpredictable MOV instruction result\n");
       return;
     }
-    ref->SPSRtoCPSR();
+    SPSRtoCPSR();
 #endif
   }
   if (s == 1) {
-    ref->flags.N = getBit(ref->dpi_shiftop.entire, 31);
-    ref->flags.Z = ((ref->dpi_shiftop.entire == 0) ? true : false);
-    ref->flags.C = ref->dpi_shiftopcarry;
-    // nothing happens with ref->flags.V 
+    flags.N = getBit(dpi_shiftop.entire, 31);
+    flags.Z = ((dpi_shiftop.entire == 0) ? true : false);
+    flags.C = dpi_shiftopcarry;
+    // nothing happens with flags.V 
   }
      
-  dprintf(" *  R%d <= 0x%08X (%d)\n", rd, ref->dpi_shiftop.entire, ref->dpi_shiftop.entire); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  R%d <= 0x%08X (%d)\n", rd, dpi_shiftop.entire, dpi_shiftop.entire); 
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void MRC(){
+void arm_isa::MRC(){
   dprintf("Instruction: MRC\n");
   fprintf(stderr, "Warning: MRC instruction is not implemented in this model.\n");
 }
 
 //------------------------------------------------------
-inline void MRS(arm_isa* ref, int rd, bool r, int zero3, int subop2, int func2, int subop1, int rm, int field,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::MRS(int rd, bool r, int zero3, int subop2, int func2, int subop1, int rm, int field) {
 
   unsigned res;
 
@@ -1576,15 +1532,15 @@ inline void MRS(arm_isa* ref, int rd, bool r, int zero3, int subop2, int func2, 
   }
 
   if (r == 1) {
-    if (!ref->in_a_privileged_mode()) {
+    if (!in_a_privileged_mode()) {
       printf("Unpredictable MRS instruction result\n");
       dprintf("**! Unpredictable MRS instruction result\n");
       return;
     }
-    res = ref->readSPSR();
+    res = readSPSR();
     dprintf("Read SPSR.\n");
   } else {
-    res = ref->readCPSR();
+    res = readCPSR();
     dprintf("Read CPSR.\n");
   }
 
@@ -1596,9 +1552,7 @@ inline void MRS(arm_isa* ref, int rd, bool r, int zero3, int subop2, int func2, 
 }
 
 //------------------------------------------------------
-inline void MUL(arm_isa* ref, int rd, int rm, int rs, bool s,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::MUL(int rd, int rm, int rs, bool s) {
 
   arm_isa::reg_t RD2, RM2, RS2;
   RM2.entire = RB_read(rm);
@@ -1615,87 +1569,81 @@ inline void MUL(arm_isa* ref, int rd, int rm, int rs, bool s,
 
   RD2.entire = RM2.entire * RS2.entire;
   if(s == 1) {
-    ref->flags.N = getBit(RD2.entire, 31);
-    ref->flags.Z = ((RD2.entire == 0) ? true : false);
-    // nothing happens with ref->flags.C and ref->flags.V
+    flags.N = getBit(RD2.entire, 31);
+    flags.Z = ((RD2.entire == 0) ? true : false);
+    // nothing happens with flags.C and flags.V
   }
   RB_write(rd, RD2.entire);
 
   dprintf(" *  R%d <= 0x%08X (%d)\n", rd, RD2.entire, RD2.entire); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void MVN(arm_isa* ref, int rd, bool s,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::MVN(int rd, bool s) {
 
   dprintf("Instruction: MVN\n");
-  RB_write(rd,~ref->dpi_shiftop.entire);
+  RB_write(rd,~dpi_shiftop.entire);
 
   if ((s == 1)&&(rd == PC)) {
 #ifndef FORGIVE_UNPREDICTABLE
-    if (ref->arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
-        ref->arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
+    if (arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
+        arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
       printf("Unpredictable MVN instruction result\n");
       return;
     }
-    ref->SPSRtoCPSR();
+    SPSRtoCPSR();
 #endif
   } else {
     if (s == 1) {
-      ref->flags.N = getBit(~ref->dpi_shiftop.entire,31);
-      ref->flags.Z = ((~ref->dpi_shiftop.entire == 0) ? true : false);
-      ref->flags.C = ref->dpi_shiftopcarry;
-      // nothing happens with ref->flags.V 
+      flags.N = getBit(~dpi_shiftop.entire,31);
+      flags.Z = ((~dpi_shiftop.entire == 0) ? true : false);
+      flags.C = dpi_shiftopcarry;
+      // nothing happens with flags.V 
     }
   }   
 
-  dprintf(" *  R%d <= 0x%08X (%d)\n", rd, ~ref->dpi_shiftop.entire, ~ref->dpi_shiftop.entire); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  R%d <= 0x%08X (%d)\n", rd, ~dpi_shiftop.entire, ~dpi_shiftop.entire); 
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void ORR(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::ORR(int rd, int rn, bool s) {
 
   arm_isa::reg_t RD2, RN2;
   
   dprintf("Instruction: ORR\n");
   RN2.entire = RB_read(rn);
-  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
-  RD2.entire = RN2.entire | ref->dpi_shiftop.entire;
+  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,dpi_shiftop.entire);
+  RD2.entire = RN2.entire | dpi_shiftop.entire;
   RB_write(rd,RD2.entire);
 
   if ((s == 1)&&(rd == PC)) {
 #ifndef FORGIVE_UNPREDICTABLE
-    if (ref->arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
-        ref->arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
+    if (arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
+        arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
       printf("Unpredictable ORR instruction result\n");
       return;
     }
-    ref->SPSRtoCPSR();
+    SPSRtoCPSR();
 #endif
   } else {
     if (s == 1) {
-      ref->flags.N = getBit(RD2.entire,31);
-      ref->flags.Z = ((RD2.entire == 0) ? true : false);
-      ref->flags.C = ref->dpi_shiftopcarry;
-      // nothing happens with ref->flags.V 
+      flags.N = getBit(RD2.entire,31);
+      flags.Z = ((RD2.entire == 0) ? true : false);
+      flags.C = dpi_shiftopcarry;
+      // nothing happens with flags.V 
     }
   }  
   dprintf(" *  R%d <= 0x%08X (%d)\n", rd, RD2.entire, RD2.entire); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);  
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V);  
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void RSB(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::RSB(int rd, int rn, bool s) {
 
   arm_isa::reg_t RD2, RN2, neg_RN2;
   arm_isa::r64bit_t result;
@@ -1703,38 +1651,36 @@ inline void RSB(arm_isa* ref, int rd, int rn, bool s,
   dprintf("Instruction: RSB\n");
   RN2.entire = RB_read(rn);
   if(rn == PC) RN2.entire += 4;
-  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
+  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,dpi_shiftop.entire);
   neg_RN2.entire = - RN2.entire;
-  result.hilo = (uint64_t)(uint32_t)ref->dpi_shiftop.entire + (uint64_t)(uint32_t)neg_RN2.entire;
+  result.hilo = (uint64_t)(uint32_t)dpi_shiftop.entire + (uint64_t)(uint32_t)neg_RN2.entire;
   RD2.entire = result.reg[0];
   RB_write(rd, RD2.entire);
   if ((s == 1) && (rd == PC)) {
 #ifndef FORGIVE_UNPREDICTABLE
-    if (ref->arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
-        ref->arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
+    if (arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
+        arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
       printf("Unpredictable RSB instruction result\n");
       return;
     }
-    ref->SPSRtoCPSR();
+    SPSRtoCPSR();
 #endif
   } else {
     if (s == 1) {
-      ref->flags.N = getBit(RD2.entire,31);
-      ref->flags.Z = ((RD2.entire == 0) ? true : false);
-      ref->flags.C = !(((uint32_t) RN2.entire > (uint32_t) ref->dpi_shiftop.entire) ? true : false);
-      ref->flags.V = (((getBit(neg_RN2.entire,31) && getBit(ref->dpi_shiftop.entire,31) && (!getBit(RD2.entire,31))) ||
-		  ((!getBit(neg_RN2.entire,31)) && (!getBit(ref->dpi_shiftop.entire,31)) && getBit(RD2.entire,31))) ? true : false);
+      flags.N = getBit(RD2.entire,31);
+      flags.Z = ((RD2.entire == 0) ? true : false);
+      flags.C = !(((uint32_t) RN2.entire > (uint32_t) dpi_shiftop.entire) ? true : false);
+      flags.V = (((getBit(neg_RN2.entire,31) && getBit(dpi_shiftop.entire,31) && (!getBit(RD2.entire,31))) ||
+		  ((!getBit(neg_RN2.entire,31)) && (!getBit(dpi_shiftop.entire,31)) && getBit(RD2.entire,31))) ? true : false);
     }
   }
   dprintf(" *  R%d <= 0x%08X (%d)\n", rd, RD2.entire, RD2.entire); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void RSC(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::RSC(int rd, int rn, bool s) {
 
   arm_isa::reg_t RD2, RN2, neg_RN2;
   arm_isa::r64bit_t result;
@@ -1742,43 +1688,41 @@ inline void RSC(arm_isa* ref, int rd, int rn, bool s,
   dprintf("Instruction: RSC\n");
   RN2.entire = RB_read(rn);
   if(rn == PC) RN2.entire += 4;
-  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n  Carry = %d\n", RN2.entire,ref->dpi_shiftop.entire, ref->flags.C);
-  if (!ref->flags.C) { RN2.entire++; }  
+  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n  Carry = %d\n", RN2.entire,dpi_shiftop.entire, flags.C);
+  if (!flags.C) { RN2.entire++; }  
   neg_RN2.entire = - RN2.entire;
-  result.hilo = (uint64_t)(uint32_t)ref->dpi_shiftop.entire + (uint64_t)(uint32_t)neg_RN2.entire;
+  result.hilo = (uint64_t)(uint32_t)dpi_shiftop.entire + (uint64_t)(uint32_t)neg_RN2.entire;
   RD2.entire = result.reg[0];
 
   RB_write(rd, RD2.entire);
   if ((s == 1)&&(rd == PC)) {
 #ifndef FORGIVE_UNPREDICTABLE
-    if (ref->arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
-        ref->arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
+    if (arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
+        arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
       printf("Unpredictable RSC instruction result\n");
       return;
     }
-    ref->SPSRtoCPSR();
+    SPSRtoCPSR();
 #endif
   } else {
     if (s == 1) {
-      ref->flags.N = getBit(RD2.entire,31);
-      ref->flags.Z = ((RD2.entire == 0) ? true : false);
-      if ((!ref->flags.C)&&(RN2.entire == 0))    
-          ref->flags.C = false;                  
+      flags.N = getBit(RD2.entire,31);
+      flags.Z = ((RD2.entire == 0) ? true : false);
+      if ((!flags.C)&&(RN2.entire == 0))    
+          flags.C = false;                  
       else
-          ref->flags.C = !(((uint32_t) RN2.entire > (uint32_t) ref->dpi_shiftop.entire) ? true : false);
-      ref->flags.V = (((getBit(neg_RN2.entire,31) && getBit(ref->dpi_shiftop.entire,31) && (!getBit(RD2.entire,31))) ||
-		  ((!getBit(neg_RN2.entire,31)) && (!getBit(ref->dpi_shiftop.entire,31)) && getBit(RD2.entire,31))) ? true : false);
+          flags.C = !(((uint32_t) RN2.entire > (uint32_t) dpi_shiftop.entire) ? true : false);
+      flags.V = (((getBit(neg_RN2.entire,31) && getBit(dpi_shiftop.entire,31) && (!getBit(RD2.entire,31))) ||
+		  ((!getBit(neg_RN2.entire,31)) && (!getBit(dpi_shiftop.entire,31)) && getBit(RD2.entire,31))) ? true : false);
     }
   }
   dprintf(" *  R%d <= 0x%08X (%d)\n", rd, RD2.entire, RD2.entire); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void SBC(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::SBC(int rd, int rn, bool s) {
 
   arm_isa::reg_t RD2, RN2, neg_shiftop;
   arm_isa::r64bit_t result;
@@ -1786,42 +1730,40 @@ inline void SBC(arm_isa* ref, int rd, int rn, bool s,
   dprintf("Instruction: SBC\n");
   RN2.entire = RB_read(rn);
   if(rn == PC) RN2.entire += 4;
-  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n  Carry = %d\n", RN2.entire,ref->dpi_shiftop.entire, ref->flags.C);
-  if (!ref->flags.C) ref->dpi_shiftop.entire++;     
-  neg_shiftop.entire = - ref->dpi_shiftop.entire;   
+  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n  Carry = %d\n", RN2.entire,dpi_shiftop.entire, flags.C);
+  if (!flags.C) dpi_shiftop.entire++;     
+  neg_shiftop.entire = - dpi_shiftop.entire;   
   result.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)neg_shiftop.entire;
   RD2.entire = result.reg[0];
   RB_write(rd, RD2.entire);
   if ((s == 1)&&(rd == PC)) {
 #ifndef FORGIVE_UNPREDICTABLE
-    if (ref->arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
-        ref->arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
+    if (arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
+        arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
       printf("Unpredictable SBC instruction result\n");
       return;
     }
-    ref->SPSRtoCPSR();
+    SPSRtoCPSR();
 #endif
   } else {
     if (s == 1) {
-      ref->flags.N = getBit(RD2.entire,31);
-      ref->flags.Z = ((RD2.entire == 0) ? true : false);
-      if ((!ref->flags.C)&&(ref->dpi_shiftop.entire==0))
-          ref->flags.C = false;
+      flags.N = getBit(RD2.entire,31);
+      flags.Z = ((RD2.entire == 0) ? true : false);
+      if ((!flags.C)&&(dpi_shiftop.entire==0))
+          flags.C = false;
       else
-          ref->flags.C = !(((uint32_t) ref->dpi_shiftop.entire > (uint32_t) RN2.entire) ? true : false);
-      ref->flags.V = (((getBit(RN2.entire,31) && getBit(neg_shiftop.entire,31) && (!getBit(RD2.entire,31))) ||
+          flags.C = !(((uint32_t) dpi_shiftop.entire > (uint32_t) RN2.entire) ? true : false);
+      flags.V = (((getBit(RN2.entire,31) && getBit(neg_shiftop.entire,31) && (!getBit(RD2.entire,31))) ||
 		  ((!getBit(RN2.entire,31)) && (!getBit(neg_shiftop.entire,31)) && getBit(RD2.entire,31))) ? true : false);
     }
   }
   dprintf(" *  R%d <= 0x%08X (%d)\n", rd, RD2.entire, RD2.entire);
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void SMLAL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
-           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-           ac_reg<unsigned>& ac_pc) {
+void arm_isa::SMLAL(int rdhi, int rdlo, int rm, int rs, bool s) {
 
   arm_isa::r64bit_t result, acc;
   arm_isa::reg_t RM2, RS2;
@@ -1844,19 +1786,17 @@ inline void SMLAL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
   RB_write(rdhi,result.reg[1]);
   RB_write(rdlo,result.reg[0]);
   if(s == 1){
-    ref->flags.N = getBit(result.reg[1],31);
-    ref->flags.Z = ((result.hilo == 0) ? true : false);
-    // nothing happens with ref->flags.C and ref->flags.V
+    flags.N = getBit(result.reg[1],31);
+    flags.Z = ((result.hilo == 0) ? true : false);
+    // nothing happens with flags.C and flags.V
   }
   dprintf(" *  R%d(high) R%d(low) <= 0x%08X%08X (%d)\n", rdhi, rdlo, result.reg[1], result.reg[0], result.reg[0]); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void SMULL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
-           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-           ac_reg<unsigned>& ac_pc) {
+void arm_isa::SMULL(int rdhi, int rdlo, int rm, int rs, bool s) {
 
   arm_isa::r64bit_t result;
   arm_isa::reg_t RM2, RS2;
@@ -1877,25 +1817,23 @@ inline void SMULL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
   RB_write(rdhi,result.reg[1]);
   RB_write(rdlo,result.reg[0]);
   if(s == 1){
-    ref->flags.N = getBit(result.reg[1],31);
-    ref->flags.Z = ((result.hilo == 0) ? true : false);
-    // nothing happens with ref->flags.C and ref->flags.V
+    flags.N = getBit(result.reg[1],31);
+    flags.Z = ((result.hilo == 0) ? true : false);
+    // nothing happens with flags.C and flags.V
   }
   dprintf(" *  R%d(high) R%d(low) <= 0x%08X%08X (%d)\n", rdhi, rdlo, result.reg[1], result.reg[0], result.reg[0]);
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void STC(){
+void arm_isa::STC(){
   dprintf("Instruction: STC\n");
   fprintf(stderr,"Warning: STC instruction is not implemented in this model.\n");
 }
 
 //------------------------------------------------------
-inline void STM(arm_isa* ref, int rn, int rlist,
-        ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-        ac_reg<unsigned>& ac_pc, ac_memory& MEM, unsigned r) {
+void arm_isa::STM(int rn, int rlist, unsigned r) {
 
     // todo special cases
 
@@ -1903,33 +1841,33 @@ inline void STM(arm_isa* ref, int rn, int rlist,
 
     if (r == 0) { // STM(1) 
         dprintf("Instruction: STM\n");
-        ref->ls_address = ref->lsm_startaddress;
+        ls_address = lsm_startaddress;
         for(i=0;i<16;i++){
             if(isBitSet(rlist,i)) {
                 // rn is in rlist. e.g. push {sp,...}
                 if (i == rn)
-                    MEM.write(ref->ls_address.entire,ref->lsm_oldrn.entire);
+                    MEM.write(ls_address.entire,lsm_oldrn.entire);
                 else 
-                    MEM.write(ref->ls_address.entire,RB_read(i));
+                    MEM.write(ls_address.entire,RB_read(i));
 
-                ref->ls_address.entire += 4;
-                dprintf(" *  Stored register: 0x%X; value: 0x%X; address: 0x%lX\n",i,RB_read(i),ref->ls_address.entire-4);
+                ls_address.entire += 4;
+                dprintf(" *  Stored register: 0x%X; value: 0x%X; address: 0x%lX\n",i,RB_read(i),ls_address.entire-4);
             }
         }
     } else { // STM(2)
 #ifndef FORGIVE_UNPREDICTABLE
-        if (!ref->in_a_privileged_mode()) {
+        if (!in_a_privileged_mode()) {
             fprintf(stderr, "STM(2) unpredictable in user mode");
             abort();
         }
 #endif
         dprintf("Instruction: STM(2)\n");
-        ref->ls_address = ref->lsm_startaddress;
+        ls_address = lsm_startaddress;
         for(i=0;i<16;i++){
             if(isBitSet(rlist,i)) {
-                MEM.write(ref->ls_address.entire,RB .read(i));
-                ref->ls_address.entire += 4;
-                dprintf(" *  Stored register: 0x%X; value: 0x%X; address: 0x%lX\n",i,RB_read(i),ref->ls_address.entire-4);
+                MEM.write(ls_address.entire,RB .read(i));
+                ls_address.entire += 4;
+                dprintf(" *  Stored register: 0x%X; value: 0x%X; address: 0x%lX\n",i,RB_read(i),ls_address.entire-4);
             }
         }
     }
@@ -1938,26 +1876,22 @@ inline void STM(arm_isa* ref, int rn, int rlist,
 }
 
 //------------------------------------------------------
-inline void STR(arm_isa* ref, int rd, int rn,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::STR(int rd, int rn) {
 
   dprintf("Instruction: STR\n");
 
   // Special cases
   // verify coprocessor alignment
   
-  MEM.write(ref->ls_address.entire, RB_read(rd));
+  MEM.write(ls_address.entire, RB_read(rd));
 
-  dprintf(" *  MEM[0x%08X] <= 0x%08X\n", ref->ls_address.entire, RB_read(rd)); 
+  dprintf(" *  MEM[0x%08X] <= 0x%08X\n", ls_address.entire, RB_read(rd)); 
 
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void STRB(arm_isa* ref, int rd, int rn,
-          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::STRB(int rd, int rn) {
 
   arm_isa::reg_t RD2;
 
@@ -1966,17 +1900,15 @@ inline void STRB(arm_isa* ref, int rd, int rn,
   // Special cases
 
   RD2.entire = RB_read(rd);
-  MEM.write_byte(ref->ls_address.entire, RD2.byte[0]);
+  MEM.write_byte(ls_address.entire, RD2.byte[0]);
 
-  dprintf(" *  MEM[0x%08X] <= 0x%02X\n", ref->ls_address.entire, RD2.byte[0]); 
+  dprintf(" *  MEM[0x%08X] <= 0x%02X\n", ls_address.entire, RD2.byte[0]); 
 
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void STRBT(arm_isa* ref, int rd, int rn,
-           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-           ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::STRBT(int rd, int rn) {
 
   arm_isa::reg_t RD2;
 
@@ -1985,17 +1917,15 @@ inline void STRBT(arm_isa* ref, int rd, int rn,
   // Special cases
   
   RD2.entire = RB_read(rd);
-  MEM.write_byte(ref->ls_address.entire, RD2.byte[0]);
+  MEM.write_byte(ls_address.entire, RD2.byte[0]);
 
-  dprintf(" *  MEM[0x%08X] <= 0x%02X\n", ref->ls_address.entire, RD2.byte[0]); 
+  dprintf(" *  MEM[0x%08X] <= 0x%02X\n", ls_address.entire, RD2.byte[0]); 
 
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void STRD(arm_isa* ref, int rd, int rn,
-          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::STRD(int rd, int rn) {
 
   dprintf("Instruction: STRD\n");
 
@@ -2006,24 +1936,22 @@ inline void STRD(arm_isa* ref, int rd, int rn,
     return;
   }
   // Check doubleword alignment
-  if((rd == LR)||(ref->ls_address.entire & 0x00000007)){
+  if((rd == LR)||(ls_address.entire & 0x00000007)){
     printf("Unpredictable STRD instruction result (Address is not doubleword aligned)\n");
     return;
   }
 
   //FIXME: Check if writeback receives +4 from second address
-  MEM.write(ref->ls_address.entire,RB_read(rd));
-  MEM.write(ref->ls_address.entire+4,RB_read(rd+1));
+  MEM.write(ls_address.entire,RB_read(rd));
+  MEM.write(ls_address.entire+4,RB_read(rd+1));
 
-  dprintf(" *  MEM[0x%08X], *DATA_PORT[0x%08X] <= 0x%08X %08X\n", ref->ls_address.entire, ref->ls_address.entire+4, RB_read(rd+1), RB_read(rd)); 
+  dprintf(" *  MEM[0x%08X], *DATA_PORT[0x%08X] <= 0x%08X %08X\n", ls_address.entire, ls_address.entire+4, RB_read(rd+1), RB_read(rd)); 
 
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void STRH(arm_isa* ref, int rd, int rn,
-          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::STRH(int rd, int rn) {
 
   int16_t data;
 
@@ -2032,40 +1960,36 @@ inline void STRH(arm_isa* ref, int rd, int rn,
   // Special cases
   // verify coprocessor alignment
   // verify halfword alignment
-  if(isBitSet(ref->ls_address.entire,0)){
+  if(isBitSet(ls_address.entire,0)){
     printf("Unpredictable STRH instruction result (Address is not halfword aligned)\n");
     return;
   }
 
   data = (int16_t) (RB_read(rd) & 0x0000FFFF);
-  MEM.write_half(ref->ls_address.entire, data);
+  MEM.write_half(ls_address.entire, data);
 
-  dprintf(" *  MEM[0x%08X] <= 0x%04X\n", ref->ls_address.entire, data); 
+  dprintf(" *  MEM[0x%08X] <= 0x%04X\n", ls_address.entire, data); 
     
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void STRT(arm_isa* ref, int rd, int rn,
-          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::STRT(int rd, int rn) {
 
   dprintf("Instruction: STRT\n");
 
   // Special cases
   // verificar caso do coprocessador (alinhamento)
   
-  MEM.write(ref->ls_address.entire, RB_read(rd));
+  MEM.write(ls_address.entire, RB_read(rd));
 
-  dprintf(" *  MEM[0x%08X] <= 0x%08X\n", ref->ls_address.entire, RB_read(rd)); 
+  dprintf(" *  MEM[0x%08X] <= 0x%08X\n", ls_address.entire, RB_read(rd)); 
 
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void SUB(arm_isa* ref, int rd, int rn, bool s,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::SUB(int rd, int rn, bool s) {
 
   arm_isa::reg_t RD2, RN2, neg_shiftop;
   arm_isa::r64bit_t result;
@@ -2073,39 +1997,37 @@ inline void SUB(arm_isa* ref, int rd, int rn, bool s,
   dprintf("Instruction: SUB\n");
   RN2.entire = RB_read(rn);
   if(rn == PC) RN2.entire += 4;
-  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
-  neg_shiftop.entire = - ref->dpi_shiftop.entire;
+  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,dpi_shiftop.entire);
+  neg_shiftop.entire = - dpi_shiftop.entire;
   result.hilo = (uint64_t)(uint32_t)RN2.entire + (uint64_t)(uint32_t)neg_shiftop.entire;
   RD2.entire = result.reg[0];
   RB_write(rd, RD2.entire);
   if ((s == 1)&&(rd == PC)) {
 #ifndef FORGIVE_UNPREDICTABLE
-    if (ref->arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
-        ref->arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
+    if (arm_proc_mode.mode == arm_isa::processor_mode::USER_MODE ||
+        arm_proc_mode.mode == arm_isa::processor_mode::SYSTEM_MODE) {
       printf("Unpredictable SUB instruction result\n");
       return;
     }
-    ref->SPSRtoCPSR();
+    SPSRtoCPSR();
 #endif
   } else {
     if (s == 1) {
-      ref->flags.N = getBit(RD2.entire,31);
-      ref->flags.Z = ((RD2.entire == 0) ? true : false);
-      ref->flags.C = !(((uint32_t) ref->dpi_shiftop.entire > (uint32_t) RN2.entire) ? true : false);
-      ref->flags.V = (((getBit(RN2.entire,31) && getBit(neg_shiftop.entire,31) && (!getBit(RD2.entire,31))) ||
+      flags.N = getBit(RD2.entire,31);
+      flags.Z = ((RD2.entire == 0) ? true : false);
+      flags.C = !(((uint32_t) dpi_shiftop.entire > (uint32_t) RN2.entire) ? true : false);
+      flags.V = (((getBit(RN2.entire,31) && getBit(neg_shiftop.entire,31) && (!getBit(RD2.entire,31))) ||
 		  ((!getBit(RN2.entire,31)) && (!getBit(neg_shiftop.entire,31)) && getBit(RD2.entire,31))) ? true : false);
     }
   }
   dprintf(" *  R%d <= 0x%08X (%d)\n", rd, RD2.entire, RD2.entire); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
  
 }
 
 //------------------------------------------------------
-inline void SWP(arm_isa* ref, int rd, int rn, int rm,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::SWP(int rd, int rn, int rm) {
 
   arm_isa::reg_t RN2, RM2, rtmp;
   int32_t tmp;
@@ -2151,9 +2073,7 @@ inline void SWP(arm_isa* ref, int rd, int rn, int rm,
 }
 
 //------------------------------------------------------
-inline void SWPB(arm_isa* ref, int rd, int rn, int rm,
-          ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-          ac_reg<unsigned>& ac_pc, ac_memory& MEM) {
+void arm_isa::SWPB(int rd, int rn, int rm) {
 
   uint32_t tmp;
   arm_isa::reg_t RM2, RN2;
@@ -2180,51 +2100,45 @@ inline void SWPB(arm_isa* ref, int rd, int rn, int rm,
 }
 
 //------------------------------------------------------
-inline void TEQ(arm_isa *ref, int rn,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::TEQ(int rn) {
 
   arm_isa::reg_t RN2, alu_out;
 
   dprintf("Instruction: TEQ\n");
   RN2.entire = RB_read(rn);
-  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
-  alu_out.entire = RN2.entire ^ ref->dpi_shiftop.entire;
+  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,dpi_shiftop.entire);
+  alu_out.entire = RN2.entire ^ dpi_shiftop.entire;
 
-  ref->flags.N = getBit(alu_out.entire,31);
-  ref->flags.Z = ((alu_out.entire == 0) ? true : false);
-  ref->flags.C = ref->dpi_shiftopcarry;
-  // nothing happens with ref->flags.V
+  flags.N = getBit(alu_out.entire,31);
+  flags.Z = ((alu_out.entire == 0) ? true : false);
+  flags.C = dpi_shiftopcarry;
+  // nothing happens with flags.V
     
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);  
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V);  
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void TST(arm_isa *ref, int rn,
-         ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-         ac_reg<unsigned>& ac_pc) {
+void arm_isa::TST(int rn) {
 
   arm_isa::reg_t RN2, alu_out;
 
   dprintf("Instruction: TST\n");
   RN2.entire = RB_read(rn);
-  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,ref->dpi_shiftop.entire);
-  alu_out.entire = RN2.entire & ref->dpi_shiftop.entire;
+  dprintf("Operands:\n  A = 0x%lX\n  B = 0x%lX\n", RN2.entire,dpi_shiftop.entire);
+  alu_out.entire = RN2.entire & dpi_shiftop.entire;
 
-  ref->flags.N = getBit(alu_out.entire, 31);
-  ref->flags.Z = ((alu_out.entire == 0) ? true : false);
-  ref->flags.C = ref->dpi_shiftopcarry;
-  // nothing happens with ref->flags.V
+  flags.N = getBit(alu_out.entire, 31);
+  flags.Z = ((alu_out.entire == 0) ? true : false);
+  flags.C = dpi_shiftopcarry;
+  // nothing happens with flags.V
     
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V); 
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V); 
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void UMLAL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
-           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-           ac_reg<unsigned>& ac_pc) {
+void arm_isa::UMLAL(int rdhi, int rdlo, int rm, int rs, bool s) {
 
   arm_isa::r64bit_t result, acc;
   arm_isa::reg_t RM2, RS2;
@@ -2248,20 +2162,18 @@ inline void UMLAL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
   RB_write(rdhi,result.reg[1]);
   RB_write(rdlo,result.reg[0]);
   if(s == 1){
-    ref->flags.N = getBit(result.reg[1],31);
-    ref->flags.Z = ((result.hilo == 0) ? true : false);
-    // nothing happens with ref->flags.C and ref->flags.V
+    flags.N = getBit(result.reg[1],31);
+    flags.Z = ((result.hilo == 0) ? true : false);
+    // nothing happens with flags.C and flags.V
   }
 
   dprintf(" *  R%d(high) R%d(low) <= 0x%08X%08X (%d)\n", rdhi, rdlo, result.reg[1], result.reg[0], result.reg[0]); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void UMULL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
-           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-           ac_reg<unsigned>& ac_pc) {
+void arm_isa::UMULL(int rdhi, int rdlo, int rm, int rs, bool s) {
 
   
   arm_isa::r64bit_t result;
@@ -2283,28 +2195,26 @@ inline void UMULL(arm_isa* ref, int rdhi, int rdlo, int rm, int rs, bool s,
   RB_write(rdhi,result.reg[1]);
   RB_write(rdlo,result.reg[0]);
   if(s == 1){
-    ref->flags.N = getBit(result.reg[1],31);
-    ref->flags.Z = ((result.hilo == 0) ? true : false);
-    // nothing happens with ref->flags.C and ref->flags.V
+    flags.N = getBit(result.reg[1],31);
+    flags.Z = ((result.hilo == 0) ? true : false);
+    // nothing happens with flags.C and flags.V
   }
   dprintf(" *  R%d(high) R%d(low) <= 0x%08X%08X (%d)\n", rdhi, rdlo, result.reg[1], result.reg[0], result.reg[0]); 
-  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",ref->flags.N,ref->flags.Z,ref->flags.C,ref->flags.V);
+  dprintf(" *  Flags <= N=0x%X, Z=0x%X, C=0x%X, V=0x%X\n",flags.N,flags.Z,flags.C,flags.V);
   ac_pc = RB_read(PC);
 }
 
 //------------------------------------------------------
-inline void DSMLA(arm_isa* ref, int rd, int rn,
-           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-           ac_reg<unsigned>& ac_pc) {
+void arm_isa::DSMLA(int rd, int rn) {
 
   arm_isa::reg_t RD2, RN2;
 
   RN2.entire = RB_read(rn);
 
   dprintf("Instruction: SMLA<y><x>\n");
-  dprintf("Operands:\n  rn=0x%X, contains 0x%lX\n  first operand contains 0x%lX\n  second operand contains 0x%lX\n  rd=0x%X, contains 0x%lX\n", rn, RN2.entire, ref->OP1.entire, ref->OP2.entire, rd, RD2.entire);
+  dprintf("Operands:\n  rn=0x%X, contains 0x%lX\n  first operand contains 0x%lX\n  second operand contains 0x%lX\n  rd=0x%X, contains 0x%lX\n", rn, RN2.entire, OP1.entire, OP2.entire, rd, RD2.entire);
   
-  RD2.entire = (ref->OP1.entire * ref->OP2.entire) + RN2.entire;
+  RD2.entire = (OP1.entire * OP2.entire) + RN2.entire;
 
   RB_write(rd, RD2.entire);
 
@@ -2314,16 +2224,14 @@ inline void DSMLA(arm_isa* ref, int rd, int rn,
 }
 
 //------------------------------------------------------
-inline void DSMUL(arm_isa* ref, int rd,
-           ac_regbank<16, arm_parms::ac_word, arm_parms::ac_Dword>& RB,
-           ac_reg<unsigned>& ac_pc) {
+void arm_isa::DSMUL(int rd) {
 
   arm_isa::reg_t RD2;
 
   dprintf("Instruction: SMUL<y><x>\n");
-  dprintf("Operands:\n  first operand contains 0x%lX\n  second operand contains 0x%lX\n  rd=0x%X, contains 0x%lX\n", ref->OP1.entire, ref->OP2.entire, rd, RD2.entire);
+  dprintf("Operands:\n  first operand contains 0x%lX\n  second operand contains 0x%lX\n  rd=0x%X, contains 0x%lX\n", OP1.entire, OP2.entire, rd, RD2.entire);
   
-  RD2.entire = ref->OP1.entire * ref->OP2.entire;
+  RD2.entire = OP1.entire * OP2.entire;
 
   RB_write(rd, RD2.entire);
 
@@ -2336,151 +2244,151 @@ inline void DSMUL(arm_isa* ref, int rd,
 
 
 //!Instruction and1 behavior method.
-void ac_behavior( and1 ){ AND(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( and1 ){ AND(rd, rn, s);}
 
 //!Instruction eor1 behavior method.
-void ac_behavior( eor1 ){ EOR(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( eor1 ){ EOR(rd, rn, s);}
 
 //!Instruction sub1 behavior method.
-void ac_behavior( sub1 ){ SUB(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( sub1 ){ SUB(rd, rn, s);}
 
 //!Instruction rsb1 behavior method.
-void ac_behavior( rsb1 ){ RSB(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( rsb1 ){ RSB(rd, rn, s);}
 
 //!Instruction add1 behavior method.
-void ac_behavior( add1 ){ ADD(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( add1 ){ ADD(rd, rn, s);}
 
 //!Instruction adc1 behavior method.
-void ac_behavior( adc1 ){ ADC(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( adc1 ){ ADC(rd, rn, s);}
 
 //!Instruction sbc1 behavior method.
-void ac_behavior( sbc1 ){ SBC(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( sbc1 ){ SBC(rd, rn, s);}
 
 //!Instruction rsc1 behavior method.
-void ac_behavior( rsc1 ){ RSC(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( rsc1 ){ RSC(rd, rn, s);}
 
 //!Instruction tst1 behavior method.
-void ac_behavior( tst1 ){ TST(this, rn, RB, ac_pc);}
+void ac_behavior( tst1 ){ TST(rn);}
 
 //!Instruction teq1 behavior method.
-void ac_behavior( teq1 ){ TEQ(this, rn, RB, ac_pc);}
+void ac_behavior( teq1 ){ TEQ(rn);}
 
 //!Instruction cmp1 behavior method.
-void ac_behavior( cmp1 ){ CMP(this, rn, RB, ac_pc);}
+void ac_behavior( cmp1 ){ CMP(rn);}
 
 //!Instruction cmn1 behavior method.
-void ac_behavior( cmn1 ){ CMN(this, rn, RB, ac_pc);}
+void ac_behavior( cmn1 ){ CMN(rn);}
 
 //!Instruction orr1 behavior method.
-void ac_behavior( orr1 ){ ORR(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( orr1 ){ ORR(rd, rn, s);}
 
 //!Instruction mov1 behavior method.
-void ac_behavior( mov1 ){ MOV(this, rd, s, RB, ac_pc);}
+void ac_behavior( mov1 ){ MOV(rd, s);}
 
 //!Instruction bic1 behavior method.
-void ac_behavior( bic1 ){ BIC(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( bic1 ){ BIC(rd, rn, s);}
 
 //!Instruction mvn1 behavior method.
-void ac_behavior( mvn1 ){ MVN(this, rd, s, RB, ac_pc);}
+void ac_behavior( mvn1 ){ MVN(rd, s);}
 
 //!Instruction and2 behavior method.
-void ac_behavior( and2 ){ AND(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( and2 ){ AND(rd, rn, s);}
 
 //!Instruction eor2 behavior method.
-void ac_behavior( eor2 ){ EOR(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( eor2 ){ EOR(rd, rn, s);}
 
 //!Instruction sub2 behavior method.
-void ac_behavior( sub2 ){ SUB(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( sub2 ){ SUB(rd, rn, s);}
 
 //!Instruction rsb2 behavior method.
-void ac_behavior( rsb2 ){ RSB(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( rsb2 ){ RSB(rd, rn, s);}
 
 //!Instruction add2 behavior method.
-void ac_behavior( add2 ){ ADD(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( add2 ){ ADD(rd, rn, s);}
 
 //!Instruction adc2 behavior method.
-void ac_behavior( adc2 ){ ADC(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( adc2 ){ ADC(rd, rn, s);}
 
 //!Instruction sbc2 behavior method.
-void ac_behavior( sbc2 ){ SBC(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( sbc2 ){ SBC(rd, rn, s);}
 
 //!Instruction rsc2 behavior method.
-void ac_behavior( rsc2 ){ RSC(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( rsc2 ){ RSC(rd, rn, s);}
 
 //!Instruction tst2 behavior method.
-void ac_behavior( tst2 ){ TST(this, rn, RB, ac_pc);}
+void ac_behavior( tst2 ){ TST(rn);}
 
 //!Instruction teq2 behavior method.
-void ac_behavior( teq2 ){ TEQ(this, rn, RB, ac_pc);}
+void ac_behavior( teq2 ){ TEQ(rn);}
 
 //!Instruction cmp2 behavior method.
-void ac_behavior( cmp2 ){ CMP(this, rn, RB, ac_pc);}
+void ac_behavior( cmp2 ){ CMP(rn);}
 
 //!Instruction cmn2 behavior method.
-void ac_behavior( cmn2 ){ CMN(this, rn, RB, ac_pc);}
+void ac_behavior( cmn2 ){ CMN(rn);}
 
 //!Instruction orr2 behavior method.
-void ac_behavior( orr2 ){ ORR(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( orr2 ){ ORR(rd, rn, s);}
 
 //!Instruction mov2 behavior method.
-void ac_behavior( mov2 ){ MOV(this, rd, s, RB, ac_pc);}
+void ac_behavior( mov2 ){ MOV(rd, s);}
 
 //!Instruction bic2 behavior method.
-void ac_behavior( bic2 ){ BIC(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( bic2 ){ BIC(rd, rn, s);}
 
 //!Instruction mvn2 behavior method.
-void ac_behavior( mvn2 ){ MVN(this, rd, s, RB, ac_pc);}
+void ac_behavior( mvn2 ){ MVN(rd, s);}
 
 //!Instruction and3 behavior method.
-void ac_behavior( and3 ){ AND(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( and3 ){ AND(rd, rn, s);}
 
 //!Instruction eor3 behavior method.
-void ac_behavior( eor3 ){ EOR(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( eor3 ){ EOR(rd, rn, s);}
 
 //!Instruction sub3 behavior method.
-void ac_behavior( sub3 ){ SUB(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( sub3 ){ SUB(rd, rn, s);}
 
 //!Instruction rsb3 behavior method.
-void ac_behavior( rsb3 ){ RSB(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( rsb3 ){ RSB(rd, rn, s);}
 
 //!Instruction add3 behavior method.
-void ac_behavior( add3 ){ ADD(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( add3 ){ ADD(rd, rn, s);}
 
 //!Instruction adc3 behavior method.
-void ac_behavior( adc3 ){ ADC(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( adc3 ){ ADC(rd, rn, s);}
 
 //!Instruction sbc3 behavior method.
-void ac_behavior( sbc3 ){ SBC(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( sbc3 ){ SBC(rd, rn, s);}
 
 //!Instruction rsc3 behavior method.
-void ac_behavior( rsc3 ){ RSC(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( rsc3 ){ RSC(rd, rn, s);}
 
 //!Instruction tst3 behavior method.
-void ac_behavior( tst3 ){ TST(this, rn, RB, ac_pc);}
+void ac_behavior( tst3 ){ TST(rn);}
 
 //!Instruction teq3 behavior method.
-void ac_behavior( teq3 ){ TEQ(this, rn, RB, ac_pc);}
+void ac_behavior( teq3 ){ TEQ(rn);}
 
 //!Instruction cmp3 behavior method.
-void ac_behavior( cmp3 ){ CMP(this, rn, RB, ac_pc);}
+void ac_behavior( cmp3 ){ CMP(rn);}
 
 //!Instruction cmn3 behavior method.
-void ac_behavior( cmn3 ){ CMN(this, rn, RB, ac_pc);}
+void ac_behavior( cmn3 ){ CMN(rn);}
 
 //!Instruction orr3 behavior method.
-void ac_behavior( orr3 ){ ORR(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( orr3 ){ ORR(rd, rn, s);}
 
 //!Instruction mov3 behavior method.
-void ac_behavior( mov3 ){ MOV(this, rd, s, RB, ac_pc);}
+void ac_behavior( mov3 ){ MOV(rd, s);}
 
 //!Instruction bic3 behavior method.
-void ac_behavior( bic3 ){ BIC(this, rd, rn, s, RB, ac_pc);}
+void ac_behavior( bic3 ){ BIC(rd, rn, s);}
 
 //!Instruction mvn3 behavior method.
-void ac_behavior( mvn3 ){ MVN(this, rd, s, RB, ac_pc);}
+void ac_behavior( mvn3 ){ MVN(rd, s);}
 
 //!Instruction b behavior method.
-void ac_behavior( b ){ B(this, h, offset, RB, ac_pc);}
+void ac_behavior( b ){ B(h, offset);}
 
 //!Instruction blx1 behavior method.
 void ac_behavior( blx1 ){
@@ -2488,7 +2396,7 @@ void ac_behavior( blx1 ){
 }
 
 //!Instruction bx behavior method.
-void ac_behavior( bx ){ BX(this, rm, RB, ac_pc); }
+void ac_behavior( bx ){ BX(rm); }
 
 //!Instruction blx2 behavior method.
 void ac_behavior( blx2 ){
@@ -2514,96 +2422,96 @@ void ac_behavior( blx2 ){
 }
 
 //!Instruction swp behavior method.
-void ac_behavior( swp ){ SWP(this, rd, rn, rm, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( swp ){ SWP(rd, rn, rm); }
 
 //!Instruction swpb behavior method.
-void ac_behavior( swpb ){ SWPB(this, rd, rn, rm, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( swpb ){ SWPB(rd, rn, rm); }
 
 //!Instruction mla behavior method.
-void ac_behavior( mla ){ MLA(this, rn, rd, rm, rs, s, RB, ac_pc);}
+void ac_behavior( mla ){ MLA(rn, rd, rm, rs, s);}
 // OBS: inversao dos parametros proposital ("fields with the same name...")
 
 //!Instruction mul behavior method.
-void ac_behavior( mul ){ MUL(this, rn, rm, rs, s, RB, ac_pc);}
+void ac_behavior( mul ){ MUL(rn, rm, rs, s);}
 // OBS: inversao dos parametros proposital ("fields with the same name...")
 
 //!Instruction smlal behavior method.
-void ac_behavior( smlal ){ SMLAL(this, rdhi, rdlo, rm, rs, s, RB, ac_pc);}
+void ac_behavior( smlal ){ SMLAL(rdhi, rdlo, rm, rs, s);}
 
 //!Instruction smull behavior method.
-void ac_behavior( smull ){ SMULL(this, rdhi, rdlo, rm, rs, s, RB, ac_pc);}
+void ac_behavior( smull ){ SMULL(rdhi, rdlo, rm, rs, s);}
 
 //!Instruction umlal behavior method.
-void ac_behavior( umlal ){ UMLAL(this, rdhi, rdlo, rm, rs, s, RB, ac_pc);}
+void ac_behavior( umlal ){ UMLAL(rdhi, rdlo, rm, rs, s);}
 
 //!Instruction umull behavior method.
-void ac_behavior( umull ){ UMULL(this, rdhi, rdlo, rm, rs, s, RB, ac_pc);}
+void ac_behavior( umull ){ UMULL(rdhi, rdlo, rm, rs, s);}
 
 //!Instruction ldr1 behavior method.
-void ac_behavior( ldr1 ){ LDR(this, rd, rn, RB, ac_pc, *DATA_PORT);  }
+void ac_behavior( ldr1 ){ LDR(rd, rn);  }
 
 //!Instruction ldrt1 behavior method.
-void ac_behavior( ldrt1 ){ LDRT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( ldrt1 ){ LDRT(rd, rn); }
 
 //!Instruction ldrb1 behavior method.
-void ac_behavior( ldrb1 ){ LDRB(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( ldrb1 ){ LDRB(rd, rn); }
 
 //!Instruction ldrbt1 behavior method.
-void ac_behavior( ldrbt1 ){ LDRBT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( ldrbt1 ){ LDRBT(rd, rn); }
 
 //!Instruction str1 behavior method.
-void ac_behavior( str1 ){ STR(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( str1 ){ STR(rd, rn); }
 
 //!Instruction strt1 behavior method.
-void ac_behavior( strt1 ){ STRT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( strt1 ){ STRT(rd, rn); }
 
 //!Instruction strb1 behavior method.
-void ac_behavior( strb1 ){ STRB(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( strb1 ){ STRB(rd, rn); }
 
 //!Instruction strbt1 behavior method.
-void ac_behavior( strbt1 ){ STRBT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( strbt1 ){ STRBT(rd, rn); }
 
 //!Instruction ldr2 behavior method.
-void ac_behavior( ldr2 ){ LDR(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( ldr2 ){ LDR(rd, rn); }
 
 //!Instruction ldrt2 behavior method.
-void ac_behavior( ldrt2 ){ LDRT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( ldrt2 ){ LDRT(rd, rn); }
 
 //!Instruction ldrb2 behavior method.
-void ac_behavior( ldrb2 ){ LDRB(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( ldrb2 ){ LDRB(rd, rn); }
 
 //!Instruction ldrbt2 behavior method.
-void ac_behavior( ldrbt2 ){ LDRBT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( ldrbt2 ){ LDRBT(rd, rn); }
 
 //!Instruction str2 behavior method.
-void ac_behavior( str2 ){ STR(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( str2 ){ STR(rd, rn); }
 
 //!Instruction strt2 behavior method.
-void ac_behavior( strt2 ){ STRT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( strt2 ){ STRT(rd, rn); }
 
 //!Instruction strb2 behavior method.
-void ac_behavior( strb2 ){ STRB(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( strb2 ){ STRB(rd, rn); }
 
 //!Instruction strbt2 behavior method.
-void ac_behavior( strbt2 ){ STRBT(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( strbt2 ){ STRBT(rd, rn); }
 
 //!Instruction ldrh behavior method.
-void ac_behavior( ldrh ){ LDRH(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( ldrh ){ LDRH(rd, rn); }
 
 //!Instruction ldrsb behavior method.
-void ac_behavior( ldrsb ){ LDRSB(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( ldrsb ){ LDRSB(rd, rn); }
 
 //!Instruction ldrsh behavior method.
-void ac_behavior( ldrsh ){ LDRSH(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( ldrsh ){ LDRSH(rd, rn); }
 
 //!Instruction strh behavior method.
-void ac_behavior( strh ){ STRH(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( strh ){ STRH(rd, rn); }
 
 //!Instruction ldm behavior method.
-void ac_behavior( ldm ){ LDM(this, rlist,r, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( ldm ){ LDM(rlist,r); }
 
 //!Instruction stm behavior method.
-void ac_behavior( stm ){ STM(this, rn, rlist, RB, ac_pc, *DATA_PORT, r); }
+void ac_behavior( stm ){ STM(rn, rlist, r); }
 
 //!Instruction cdp behavior method.
 void ac_behavior( cdp ){ CDP();}
@@ -2649,10 +2557,10 @@ void ac_behavior( swi ){
 }
 
 //!Instruction clz behavior method.
-void ac_behavior( clz ){ CLZ(this, rd, rm, RB, ac_pc);}
+void ac_behavior( clz ){ CLZ(rd, rm);}
 
 //!Instruction mrs behavior method.
-void ac_behavior( mrs ){ MRS(this, rd,r,zero3,subop2,func2,subop1,rm,fieldmask, RB, ac_pc);}
+void ac_behavior( mrs ){ MRS(rd,r,zero3,subop2,func2,subop1,rm,fieldmask);}
 
 //!Instruction msr1 behavior method.
 void ac_behavior( msr1 ){
@@ -2770,13 +2678,13 @@ void ac_behavior( msr2 ){
 }
 
 //!Instruction ldrd2 behavior method.
-void ac_behavior( ldrd ){ LDRD(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( ldrd ){ LDRD(rd, rn); }
 
 //!Instruction ldrd2 behavior method.
-void ac_behavior( strd ){ STRD(this, rd, rn, RB, ac_pc, *DATA_PORT); }
+void ac_behavior( strd ){ STRD(rd, rn); }
 
 //!Instruction dsmla behavior method.
-void ac_behavior( dsmla ){ DSMLA(this, drd, drn, RB, ac_pc); }
+void ac_behavior( dsmla ){ DSMLA(drd, drn); }
 
 //!Instruction dsmlal behavior method.
 void ac_behavior( dsmlal ){
@@ -2784,7 +2692,7 @@ void ac_behavior( dsmlal ){
 }
 
 //!Instruction dsmul behavior method.
-void ac_behavior( dsmul ){ DSMUL(this, drd, RB, ac_pc); }
+void ac_behavior( dsmul ){ DSMUL(drd); }
 
 //!Instruction dsmlaw behavior method.
 void ac_behavior( dsmlaw ){
