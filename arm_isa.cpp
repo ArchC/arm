@@ -1176,14 +1176,14 @@ void arm_isa::LDM(int rlist, bool r) {
     dprintf("Initial address: 0x%lX\n",ls_address.entire);
     for(i=0;i<15;i++){
       if(isBitSet(rlist,i)) {
-        RB_write(i,MEM.read(ls_address.entire));
+        RB_write(i,DATA_PORT->read(ls_address.entire));
         ls_address.entire += 4;
         dprintf(" *  Loaded register: 0x%X; Value: 0x%X; Next address: 0x%lX\n", i,RB_read(i),ls_address.entire-4);
       }
     }
     
     if((isBitSet(rlist,PC))) { // LDM(1)
-      value = MEM.read(ls_address.entire);
+      value = DATA_PORT->read(ls_address.entire);
       RB_write(PC,value & 0xFFFFFFFE);
       ls_address.entire += 4;
       dprintf(" *  Loaded register: PC; Next address: 0x%lX\n", ls_address.entire);
@@ -1201,13 +1201,13 @@ void arm_isa::LDM(int rlist, bool r) {
     dprintf("Initial address: 0x%lX\n",ls_address.entire);
     for(i=0;i<15;i++){
       if(isBitSet(rlist,i)) {
-        RB.write(i,MEM.read(ls_address.entire));
+        RB.write(i,DATA_PORT->read(ls_address.entire));
         ls_address.entire += 4;
         dprintf(" *  Loaded register: 0x%X; Value: 0x%X; Next address: 0x%lX\n", i,RB_read(i),ls_address.entire);
       }
     }
     if((isBitSet(rlist,PC))) { // LDM(3)
-      value = MEM.read(ls_address.entire);
+      value = DATA_PORT->read(ls_address.entire);
       RB.write(PC,value & 0xFFFFFFFE);
       ls_address.entire += 4;
       dprintf(" *  Loaded register: PC; Next address: 0x%lX\n", ls_address.entire);
@@ -1237,18 +1237,18 @@ void arm_isa::LDR(int rd, int rn) {
       
   switch(addr10) {
   case 0:
-    value = MEM.read(ls_address.entire);
+    value = DATA_PORT->read(ls_address.entire);
     break;
   case 1:
-    tmp.entire = MEM.read(ls_address.entire);
+    tmp.entire = DATA_PORT->read(ls_address.entire);
     value = (arm_isa::RotateRight(8,tmp)).entire;
     break;
   case 2:
-    tmp.entire = MEM.read(ls_address.entire);
+    tmp.entire = DATA_PORT->read(ls_address.entire);
     value = (arm_isa::RotateRight(16,tmp)).entire;
     break;
   default:
-    tmp.entire = MEM.read(ls_address.entire);
+    tmp.entire = DATA_PORT->read(ls_address.entire);
     value = (arm_isa::RotateRight(24,tmp)).entire;
   }
     
@@ -1274,7 +1274,7 @@ void arm_isa::LDRB(int rd, int rn) {
 
   // Special cases
   dprintf("Reading memory position 0x%08X\n", ls_address.entire);
-  value = (uint8_t) MEM.read_byte(ls_address.entire);
+  value = (uint8_t) DATA_PORT->read_byte(ls_address.entire);
   
   dprintf("Byte: 0x%X\n", value);
   RB_write(rd, ((uint32_t)value));
@@ -1293,7 +1293,7 @@ void arm_isa::LDRBT(int rd, int rn) {
 
   // Special cases
   dprintf("Reading memory position 0x%08X\n", ls_address.entire);
-  value = (uint8_t) MEM.read_byte(ls_address.entire);
+  value = (uint8_t) DATA_PORT->read_byte(ls_address.entire);
   
   dprintf("Byte: 0x%X\n", (uint32_t) value);
   RB_write(rd, (uint32_t) value);
@@ -1309,8 +1309,8 @@ void arm_isa::LDRD(int rd, int rn) {
 
   dprintf("Instruction: LDRD\n");
   dprintf("Reading memory position 0x%08X\n", ls_address.entire);
-  value1 = MEM.read_byte(ls_address.entire);
-  value2 = MEM.read_byte(ls_address.entire+4);
+  value1 = DATA_PORT->read_byte(ls_address.entire);
+  value2 = DATA_PORT->read_byte(ls_address.entire+4);
 
   // Special cases
   // Registrador destino deve ser par
@@ -1345,7 +1345,7 @@ void arm_isa::LDRH(int rd, int rn) {
     printf("Unpredictable LDRH instruction result (Address is not Halfword Aligned)\n");
     return;
   }
-  value = MEM.read(ls_address.entire);
+  value = DATA_PORT->read(ls_address.entire);
   value &= 0xFFFF; /* Zero extends halfword value 
 		      BUG: Model must be little endian in order to the code work  */
 
@@ -1365,7 +1365,7 @@ void arm_isa::LDRSB(int rd, int rn) {
     
   // Special cases
   dprintf("Reading memory position 0x%08X\n", ls_address.entire);  
-  data = MEM.read_byte(ls_address.entire);
+  data = DATA_PORT->read_byte(ls_address.entire);
   data = arm_isa::SignExtend(data, 8);
 
   RB_write(rd, data);
@@ -1390,7 +1390,7 @@ void arm_isa::LDRSH(int rd, int rn){
   }
   // Verify coprocessor alignment
 
-  data = MEM.read(ls_address.entire);
+  data = DATA_PORT->read(ls_address.entire);
   data &= 0xFFFF; /* Extracts halfword 
 		     BUG: Model must be little endian */
   data = arm_isa::SignExtend(data,16);
@@ -1419,21 +1419,21 @@ void arm_isa::LDRT(int rd, int rn) {
     
   switch(addr10) {
   case 0:
-    value = MEM.read(ls_address.entire);
+    value = DATA_PORT->read(ls_address.entire);
     RB_write(rd, value);
     break;
   case 1:
-    tmp.entire = MEM.read(ls_address.entire);
+    tmp.entire = DATA_PORT->read(ls_address.entire);
     value = arm_isa::RotateRight(8,tmp).entire;
     RB_write(rd, value);
     break;
   case 2:
-    tmp.entire = MEM.read(ls_address.entire);
+    tmp.entire = DATA_PORT->read(ls_address.entire);
     value = arm_isa::RotateRight(16,tmp).entire;
     RB_write(rd, value);
     break;
   default:
-    tmp.entire = MEM.read(ls_address.entire);
+    tmp.entire = DATA_PORT->read(ls_address.entire);
     value = arm_isa::RotateRight(24, tmp).entire;
     RB_write(rd, value);
   }
@@ -1842,9 +1842,9 @@ void arm_isa::STM(int rn, int rlist, unsigned r) {
             if(isBitSet(rlist,i)) {
                 // rn is in rlist. e.g. push {sp,...}
                 if (i == rn)
-                    MEM.write(ls_address.entire,lsm_oldrn.entire);
+                    DATA_PORT->write(ls_address.entire,lsm_oldrn.entire);
                 else 
-                    MEM.write(ls_address.entire,RB_read(i));
+                    DATA_PORT->write(ls_address.entire,RB_read(i));
 
                 ls_address.entire += 4;
                 dprintf(" *  Stored register: 0x%X; value: 0x%X; address: 0x%lX\n",i,RB_read(i),ls_address.entire-4);
@@ -1861,7 +1861,7 @@ void arm_isa::STM(int rn, int rlist, unsigned r) {
         ls_address = lsm_startaddress;
         for(i=0;i<16;i++){
             if(isBitSet(rlist,i)) {
-                MEM.write(ls_address.entire,RB .read(i));
+                DATA_PORT->write(ls_address.entire,RB .read(i));
                 ls_address.entire += 4;
                 dprintf(" *  Stored register: 0x%X; value: 0x%X; address: 0x%lX\n",i,RB_read(i),ls_address.entire-4);
             }
@@ -1879,7 +1879,7 @@ void arm_isa::STR(int rd, int rn) {
   // Special cases
   // verify coprocessor alignment
   
-  MEM.write(ls_address.entire, RB_read(rd));
+  DATA_PORT->write(ls_address.entire, RB_read(rd));
 
   dprintf(" *  MEM[0x%08X] <= 0x%08X\n", ls_address.entire, RB_read(rd)); 
 
@@ -1896,7 +1896,7 @@ void arm_isa::STRB(int rd, int rn) {
   // Special cases
 
   RD2.entire = RB_read(rd);
-  MEM.write_byte(ls_address.entire, RD2.byte[0]);
+  DATA_PORT->write_byte(ls_address.entire, RD2.byte[0]);
 
   dprintf(" *  MEM[0x%08X] <= 0x%02X\n", ls_address.entire, RD2.byte[0]); 
 
@@ -1913,7 +1913,7 @@ void arm_isa::STRBT(int rd, int rn) {
   // Special cases
   
   RD2.entire = RB_read(rd);
-  MEM.write_byte(ls_address.entire, RD2.byte[0]);
+  DATA_PORT->write_byte(ls_address.entire, RD2.byte[0]);
 
   dprintf(" *  MEM[0x%08X] <= 0x%02X\n", ls_address.entire, RD2.byte[0]); 
 
@@ -1938,8 +1938,8 @@ void arm_isa::STRD(int rd, int rn) {
   }
 
   //FIXME: Check if writeback receives +4 from second address
-  MEM.write(ls_address.entire,RB_read(rd));
-  MEM.write(ls_address.entire+4,RB_read(rd+1));
+  DATA_PORT->write(ls_address.entire,RB_read(rd));
+  DATA_PORT->write(ls_address.entire+4,RB_read(rd+1));
 
   dprintf(" *  MEM[0x%08X], *DATA_PORT[0x%08X] <= 0x%08X %08X\n", ls_address.entire, ls_address.entire+4, RB_read(rd+1), RB_read(rd)); 
 
@@ -1962,7 +1962,7 @@ void arm_isa::STRH(int rd, int rn) {
   }
 
   data = (int16_t) (RB_read(rd) & 0x0000FFFF);
-  MEM.write_half(ls_address.entire, data);
+  DATA_PORT->write_half(ls_address.entire, data);
 
   dprintf(" *  MEM[0x%08X] <= 0x%04X\n", ls_address.entire, data); 
     
@@ -1977,7 +1977,7 @@ void arm_isa::STRT(int rd, int rn) {
   // Special cases
   // verificar caso do coprocessador (alinhamento)
   
-  MEM.write(ls_address.entire, RB_read(rd));
+  DATA_PORT->write(ls_address.entire, RB_read(rd));
 
   dprintf(" *  MEM[0x%08X] <= 0x%08X\n", ls_address.entire, RB_read(rd)); 
 
@@ -2044,22 +2044,22 @@ void arm_isa::SWP(int rd, int rn, int rm) {
 
   switch(rn10) {
   case 0:
-    tmp = MEM.read(RN2.entire);
+    tmp = DATA_PORT->read(RN2.entire);
     break;
   case 1:
-    rtmp.entire = MEM.read(RN2.entire);
+    rtmp.entire = DATA_PORT->read(RN2.entire);
     tmp = (arm_isa::RotateRight(8,rtmp)).entire;
     break;
   case 2:
-    rtmp.entire = MEM.read(RN2.entire);
+    rtmp.entire = DATA_PORT->read(RN2.entire);
     tmp = (arm_isa::RotateRight(16,rtmp)).entire;
     break;
   default:
-    rtmp.entire = MEM.read(RN2.entire);
+    rtmp.entire = DATA_PORT->read(RN2.entire);
     tmp = (arm_isa::RotateRight(24,rtmp)).entire;
   }
     
-  MEM.write(RN2.entire,RM2.entire);
+  DATA_PORT->write(RN2.entire,RM2.entire);
   RB_write(rd,tmp);
 
   dprintf(" *  MEM[0x%08X] <= 0x%08X (%d)\n", RN2.entire, RM2.entire, RM2.entire); 
@@ -2085,8 +2085,8 @@ void arm_isa::SWPB(int rd, int rn, int rm) {
   RM2.entire = RB_read(rm);
   RN2.entire = RB_read(rn);
 
-  tmp = (uint32_t) MEM.read_byte(RN2.entire);
-  MEM.write_byte(RN2.entire,RM2.byte[0]);
+  tmp = (uint32_t) DATA_PORT->read_byte(RN2.entire);
+  DATA_PORT->write_byte(RN2.entire,RM2.byte[0]);
   RB_write(rd,tmp);
 
   dprintf(" *  MEM[0x%08X] <= 0x%02X (%d)\n", RN2.entire, RM2.byte[0], RM2.byte[0]); 
