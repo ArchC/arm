@@ -1345,7 +1345,7 @@ void arm_isa::LDRH(int rd, int rn) {
     printf("Unpredictable LDRH instruction result (Address is not Halfword Aligned)\n");
     return;
   }
-  value = DATA_PORT->read(ls_address.entire);
+  value = MEM.read_half(ref->ls_address.entire);
   value &= 0xFFFF; /* Zero extends halfword value 
 		      BUG: Model must be little endian in order to the code work  */
 
