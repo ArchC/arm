@@ -1346,8 +1346,6 @@ void arm_isa::LDRH(int rd, int rn) {
     return;
   }
   value = MEM.read_half(ref->ls_address.entire);
-  value &= 0xFFFF; /* Zero extends halfword value 
-		      BUG: Model must be little endian in order to the code work  */
 
   RB_write(rd, value);
 
@@ -1391,8 +1389,7 @@ void arm_isa::LDRSH(int rd, int rn){
   // Verify coprocessor alignment
 
   data = MEM.read_half(ref->ls_address.entire);
-  data &= 0xFFFF; /* Extracts halfword 
-		     BUG: Model must be little endian */
+  
   data = arm_isa::SignExtend(data,16);
   RB_write(rd, data);
 
