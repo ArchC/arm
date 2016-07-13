@@ -1390,7 +1390,7 @@ void arm_isa::LDRSH(int rd, int rn){
   }
   // Verify coprocessor alignment
 
-  data = DATA_PORT->read(ls_address.entire);
+  data = MEM.read_half(ref->ls_address.entire);
   data &= 0xFFFF; /* Extracts halfword 
 		     BUG: Model must be little endian */
   data = arm_isa::SignExtend(data,16);
