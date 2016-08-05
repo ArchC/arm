@@ -1345,7 +1345,7 @@ void arm_isa::LDRH(int rd, int rn) {
     printf("Unpredictable LDRH instruction result (Address is not Halfword Aligned)\n");
     return;
   }
-  value = MEM.read_half(ref->ls_address.entire);
+  value = DATA_PORT->read_half(ref->ls_address.entire);
 
   RB_write(rd, value);
 
@@ -1388,7 +1388,7 @@ void arm_isa::LDRSH(int rd, int rn){
   }
   // Verify coprocessor alignment
 
-  data = MEM.read_half(ref->ls_address.entire);
+  data = DATA_PORT->read_half(ref->ls_address.entire);
   
   data = arm_isa::SignExtend(data,16);
   RB_write(rd, data);
